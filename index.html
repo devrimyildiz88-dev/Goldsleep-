@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Goldslep Analiz</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a56a0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Goldslep">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#f0f4f8;--white:#fff;--border:#dde3ec;
+  --accent:#1a56a0;--accent2:#22c55e;--warn:#f59e0b;--danger:#ef4444;
+  --purple:#8b5cf6;--teal:#14b8a6;--orange:#f97316;--pink:#ec4899;--red:#ef4444;
+  --text:#1e293b;--muted:#64748b;--light:#f8fafc;
+  --mono:'Space Mono',monospace;--body:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);display:flex;flex-direction:column;}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;
+  background:var(--accent);flex-shrink:0;box-shadow:0 2px 8px rgba(26,86,160,.3);}
+.logo-icon{width:30px;height:30px;border-radius:6px;background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;font-size:16px;}
+.logo h1{font-size:14px;font-weight:700;color:#fff;}
+.logo span{font-size:9px;color:rgba(255,255,255,.7);display:block;}
+.topbar-right{margin-left:auto;}
+.stat-pill{font-size:10px;padding:3px 9px;border-radius:20px;
+  background:rgba(255,255,255,.15);color:#fff;font-weight:600;}
+
+.layout{display:flex;flex:1;overflow:hidden;}
+
+.sidebar{width:185px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;}
+@media(max-width:550px){.sidebar{width:125px;}}
+.sidebar-head{padding:10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
+.btn-folder{display:flex;align-items:center;justify-content:center;gap:5px;
+  background:var(--accent);color:#fff;font-weight:600;font-size:11px;
+  padding:8px;border-radius:7px;cursor:pointer;border:none;width:100%;}
+.btn-folder:hover{opacity:.88;}
+.btn-files{display:flex;align-items:center;justify-content:center;gap:5px;
+  background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;
+  padding:7px;border-radius:7px;cursor:pointer;width:100%;}
+.btn-files:hover{border-color:var(--accent);color:var(--accent);}
+input[type=file]{display:none;}
+
+.file-list{flex:1;overflow-y:auto;padding:6px;}
+.ov-item{padding:8px;border-radius:7px;cursor:pointer;margin-bottom:3px;
+  background:var(--light);border-left:3px solid var(--accent);border:1px solid transparent;
+  border-left:3px solid var(--accent);}
+.ov-item:hover,.ov-item.active{background:#e8f0fb;}
+.fi-label{font-size:10px;font-weight:600;color:var(--accent);}
+.fi-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+.file-item{padding:7px 8px;border-radius:7px;cursor:pointer;margin-bottom:2px;border:1px solid transparent;}
+.file-item:hover{background:var(--light);}
+.file-item.active{background:#e8f0fb;border-color:rgba(26,86,160,.2);}
+.fi-name{font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fi-date{font-size:9px;color:var(--muted);margin-top:1px;}
+.fi-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:3px;}
+
+.main{flex:1;overflow-y:auto;padding:12px;background:var(--bg);}
+
+.welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;text-align:center;gap:12px;}
+.welcome .big-icon{font-size:52px;opacity:.2;}
+.welcome h2{font-size:16px;font-weight:600;color:var(--muted);}
+.welcome p{font-size:12px;color:var(--muted);max-width:250px;line-height:1.6;}
+
+/* TABS */
+.tabs{display:flex;gap:0;margin-bottom:12px;background:var(--white);
+  border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.tab{padding:8px 12px;font-size:11px;font-weight:600;cursor:pointer;
+  color:var(--muted);transition:all .2s;flex:1;text-align:center;border-right:1px solid var(--border);}
+.tab:last-child{border-right:none;}
+.tab.active{background:var(--accent);color:#fff;}
+.tab-content{display:none;}
+.tab-content.active{display:block;animation:fadeUp .25s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* SECTIONS */
+.section{background:var(--white);border:1px solid var(--border);border-radius:10px;
+  padding:12px;margin-bottom:10px;}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sec-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--accent);}
+.sec-val{font-family:var(--mono);font-size:13px;font-weight:700;}
+
+/* ÖZET KULLANIM - PDF gibi 2 sütun tablo */
+.sum-table{width:100%;border-collapse:collapse;font-size:11px;}
+.sum-table td{padding:6px 8px;border:1px solid var(--border);}
+.sum-table td:nth-child(odd){background:var(--light);color:var(--muted);font-weight:500;width:45%;}
+.sum-table td:nth-child(even){font-family:var(--mono);font-weight:600;}
+.sum-table tr:first-child td{background:var(--accent);color:#fff;font-weight:700;text-align:center;}
+
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:7px;margin-bottom:10px;}
+.stat-card{background:var(--light);border:1px solid var(--border);border-radius:8px;padding:9px 10px;
+  position:relative;overflow:hidden;}
+.sc-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.sc-val{font-family:var(--mono);font-size:17px;font-weight:700;}
+.sc-unit{font-size:9px;color:var(--muted);margin-top:1px;}
+.stat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.c-ok::before{background:var(--accent2);}
+.c-warn::before{background:var(--warn);}
+.c-danger::before{background:var(--danger);}
+.c-blue::before{background:var(--accent);}
+.c-purple::before{background:var(--purple);}
+.c-teal::before{background:var(--teal);}
+.c-orange::before{background:var(--orange);}
+
+/* CHART SECTION - PDF style */
+.cs{background:var(--white);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden;}
+.cs-head{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;}
+.cs-label{font-size:10px;font-weight:700;color:#fff;padding:2px 8px;border-radius:4px;}
+.cs-avg-box{display:flex;align-items:center;gap:6px;}
+.cs-avg-label{font-size:9px;color:var(--muted);}
+.cs-avg-val{font-family:var(--mono);font-size:12px;font-weight:700;padding:2px 8px;
+  border-radius:4px;color:#fff;}
+.cs-body{padding:8px 10px 10px;}
+.chart-wrap{position:relative;}
+.chart-wrap.h120{height:120px;}
+.chart-wrap.h100{height:100px;}
+.chart-wrap.h140{height:140px;}
+.chart-wrap.h180{height:180px;}
+
+/* ALERT */
+.alert{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:7px;
+  margin-bottom:6px;border-left:3px solid;}
+.alert.danger{background:#fef2f2;border-color:var(--danger);}
+.alert.warn{background:#fffbeb;border-color:var(--warn);}
+.alert.ok{background:#f0fdf4;border-color:var(--accent2);}
+.a-title{font-size:11px;font-weight:600;}
+.a-desc{font-size:10px;color:var(--muted);margin-top:1px;}
+
+/* DAILY TABLE */
+.daily-wrap{overflow-x:auto;}
+.daily-table{width:100%;border-collapse:collapse;font-size:10px;min-width:320px;}
+.daily-table th{padding:5px 6px;border:1px solid var(--border);background:var(--accent);
+  color:#fff;font-size:9px;text-align:center;font-weight:600;}
+.daily-table td{padding:4px 6px;border:1px solid var(--border);text-align:center;}
+.daily-table tr.used4p td{background:#f0fdf4;}
+.daily-table tr.used4m td{background:#fef2f2;}
+.daily-table tr.unused td{background:#f8fafc;color:#ccc;}
+.use-bar-wrap{display:flex;align-items:center;gap:4px;}
+.use-bar{height:8px;border-radius:3px;min-width:2px;}
+
+/* REPORT TABLE */
+.rtable{width:100%;border-collapse:collapse;font-size:11px;}
+.rtable th{padding:6px 8px;border:1px solid var(--border);background:var(--accent);
+  color:#fff;font-size:9px;text-align:left;}
+.rtable td{padding:6px 8px;border:1px solid var(--border);}
+.rtable tr:nth-child(even) td{background:var(--light);}
+.badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;}
+.b-ok{background:#dcfce7;color:#166534;}
+.b-warn{background:#fef3c7;color:#92400e;}
+.b-danger{background:#fee2e2;color:#991b1b;}
+.b-info{background:#dbeafe;color:#1e40af;}
+
+/* THRESHOLD */
+.th-box{background:var(--light);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;}
+.th-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.th-row label{font-size:11px;color:var(--muted);width:155px;}
+.th-input{background:#fff;border:1px solid var(--border);color:var(--text);
+  padding:5px 8px;border-radius:6px;font-family:var(--mono);font-size:11px;width:72px;outline:none;}
+.th-input:focus{border-color:var(--accent);}
+.th-unit{font-size:10px;color:var(--muted);}
+.btn-check{background:var(--accent);color:#fff;padding:7px 18px;border-radius:7px;
+  cursor:pointer;font-size:11px;font-weight:600;border:none;margin-top:4px;}
+.btn-print{background:var(--accent2);color:#fff;font-weight:700;font-size:11px;
+  padding:8px 20px;border-radius:7px;border:none;cursor:pointer;margin-top:10px;}
+
+/* OVERVIEW CARDS */
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:12px;}
+.ov-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:10px;
+  cursor:pointer;transition:all .2s;}
+.ov-card:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(26,86,160,.1);}
+.ov-date{font-family:var(--mono);font-size:10px;color:var(--accent);margin-bottom:3px;font-weight:700;}
+.ov-mode{font-size:9px;color:var(--muted);margin-bottom:6px;}
+.ov-row{display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;}
+.ov-row span:first-child{color:var(--muted);}
+
+#installBanner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:999;
+  background:var(--accent);padding:11px 14px;align-items:center;justify-content:space-between;gap:8px;}
+.ib-btn{background:#fff;color:var(--accent);font-weight:700;padding:6px 14px;
+  border-radius:7px;border:none;cursor:pointer;font-size:11px;}
+.ib-skip{background:rgba(255,255,255,.2);border:none;color:#fff;
+  padding:6px 12px;border-radius:7px;cursor:pointer;font-size:10px;}
+
+@media print{
+  .sidebar,.topbar,#installBanner{display:none!important;}
+  .layout{display:block;}
+  .main{overflow:visible;padding:0;}
+  .tabs,.tab{display:none!important;}
+  .tab-content{display:block!important;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-icon">🫁</div>
+  <div class="logo"><h1>GOLDSLEP ANALİZ</h1><span>Detaylı Rapor</span></div>
+  <div class="topbar-right"><div class="stat-pill" id="topCount">0 kayıt</div></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <label class="btn-folder" for="folderInput">📁 Klasör Seç</label>
+      <input type="file" id="folderInput" webkitdirectory multiple accept=".gsd">
+      <label class="btn-files" for="filesInput">📄 Dosya Seç</label>
+      <input type="file" id="filesInput" multiple accept=".gsd">
+    </div>
+    <div class="file-list" id="fileList">
+      <div style="padding:20px 6px;text-align:center;color:var(--muted);font-size:10px;line-height:1.8;">
+        GSD klasörünü<br>seçin
+      </div>
+    </div>
+  </div>
+
+  <div class="main" id="main">
+    <div class="welcome">
+      <div class="big-icon">🫁</div>
+      <h2>Goldslep Detaylı Analiz</h2>
+      <p>Sol taraftan <strong>Klasör Seç</strong> ile cihazdan kopyaladığınız GSD dosya klasörünü seçin. Tüm geceler otomatik analiz edilir.</p>
+    </div>
+  </div>
+</div>
+
+<div id="installBanner">
+  <div style="color:#fff">
+    <div style="font-size:12px;font-weight:700;">📲 Ana Ekrana Ekle</div>
+    <div style="font-size:10px;opacity:.8;">Uygulama gibi kullan</div>
+  </div>
+  <div style="display:flex;gap:6px;">
+    <button class="ib-skip" onclick="document.getElementById('installBanner').style.display='none'">Sonra</button>
+    <button class="ib-btn" onclick="installApp()">Kur</button>
+  </div>
+</div>
+
+<script>
+// ═══════════ STATE ═══════════
+let allRecords=[], activeIdx=-2, charts={};
+
+// ═══════════ PARSE ═══════════
+function parseGSD(text,filename){
+  const d={};
+  text.split('\n').forEach(l=>{
+    const eq=l.indexOf('=');
+    if(eq>-1) d[l.slice(0,eq).trim()]=l.slice(eq+1).trim();
+  });
+  d._filename=filename;
+  return d;
+}
+function toMin(t){
+  if(!t||t==='00:00') return 0;
+  const p=t.split(':');
+  return parseInt(p[0]||0)*60+parseInt(p[1]||0);
+}
+function parseDate(s){
+  if(!s) return 0;
+  const p=s.split('.');
+  return p.length===3?new Date(p[2],p[1]-1,p[0]).getTime():0;
+}
+function avg(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;}
+function fmtMin(m){return Math.floor(m/60)+'s '+(Math.round(m%60))+'dk';}
+
+// ═══════════ FILE INPUT ═══════════
+document.getElementById('folderInput').addEventListener('change',handleFiles);
+document.getElementById('filesInput').addEventListener('change',handleFiles);
+
+function handleFiles(e){
+  const files=Array.from(e.target.files).filter(f=>f.name.toLowerCase().endsWith('.gsd'));
+  if(!files.length){alert('GSD dosyası bulunamadı.');return;}
+  let done=0; const newRecs=[];
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      newRecs.push({filename:file.name,data:parseGSD(ev.target.result,file.name)});
+      if(++done===files.length){
+        allRecords=[...allRecords,...newRecs];
+        const seen=new Set();
+        allRecords=allRecords.filter(r=>{if(seen.has(r.filename))return false;seen.add(r.filename);return true;});
+        allRecords.sort((a,b)=>parseDate(a.data['Date'])-parseDate(b.data['Date']));
+        document.getElementById('topCount').textContent=allRecords.length+' kayıt';
+        renderSidebar();
+        showOverview();
+      }
+    };
+    reader.readAsText(file);
+  });
+  e.target.value='';
+}
+
+// ═══════════ STATUS ═══════════
+function getStatus(d){
+  const leak=parseFloat(d['Leak']||0),ahi=parseFloat(d['AHI']||0);
+  if(leak>24||ahi>5) return{dot:'#ef4444',level:'danger'};
+  if(leak>15||ahi>2) return{dot:'#f59e0b',level:'warn'};
+  return{dot:'#22c55e',level:'ok'};
+}
+
+// ═══════════ SIDEBAR ═══════════
+function renderSidebar(){
+  const list=document.getElementById('fileList');
+  let html=`<div class="ov-item ${activeIdx===-1?'active':''}" onclick="showOverview()" style="margin-bottom:6px;">
+    <div class="fi-label">📊 Genel Bakış</div>
+    <div class="fi-sub">${allRecords.length} kayıt · Tüm dönem</div>
+  </div>`;
+  html+=allRecords.map((r,i)=>{
+    const s=getStatus(r.data);
+    return`<div class="file-item ${activeIdx===i?'active':''}" onclick="selectRecord(${i})">
+      <div class="fi-name"><span class="fi-dot" style="background:${s.dot}"></span>${r.data['Date']||r.filename}</div>
+      <div class="fi-date">${r.data['Therapy Mode']||'?'} · AHI:${r.data['AHI']||'0'}</div>
+    </div>`;
+  }).join('');
+  list.innerHTML=html;
+}
+
+// ═══════════ OVERVIEW ═══════════
+function showOverview(){
+  activeIdx=-1; renderSidebar();
+  const main=document.getElementById('main');
+  if(!allRecords.length){main.innerHTML='<div class="welcome"><div class="big-icon">🫁</div><h2>Kayıt Yok</h2></div>';return;}
+
+  const dates=allRecords.map(r=>r.data['Date']||r.filename);
+  const ahiArr=allRecords.map(r=>parseFloat(r.data['AHI']||0));
+  const aiArr=allRecords.map(r=>parseFloat(r.data['AI']||0));
+  const leakArr=allRecords.map(r=>parseFloat(r.data['Leak']||0));
+  const sleepArr=allRecords.map(r=>toMin(r.data['Sleep Duration']));
+  const epapArr=allRecords.map(r=>parseFloat(r.data['EPAP']||0));
+
+  const totalDays=allRecords.length;
+  const usedDays=allRecords.filter(r=>toMin(r.data['Sleep Duration'])>0).length;
+  const unused=totalDays-usedDays;
+  const above4=allRecords.filter(r=>toMin(r.data['Sleep Duration'])>=240).length;
+  const below4=allRecords.filter(r=>{const m=toMin(r.data['Sleep Duration']);return m>0&&m<240;}).length;
+  const avgSleep=avg(sleepArr.filter(m=>m>0));
+  const totalMin=sleepArr.reduce((a,b)=>a+b,0);
+  const minUse=Math.min(...sleepArr.filter(m=>m>0));
+  const maxUse=Math.max(...sleepArr);
+  const aAHI=avg(ahiArr.filter(v=>v>0)||[0]);
+  const aLeak=avg(leakArr);
+  const crit=allRecords.filter(r=>parseFloat(r.data['Leak']||0)>24||parseFloat(r.data['AHI']||0)>5).length;
+
+  // date range
+  const firstDate=allRecords[0].data['Date']||'';
+  const lastDate=allRecords[allRecords.length-1].data['Date']||'';
+
+  main.innerHTML=`<div style="animation:fadeUp .3s ease">
+
+  <!-- BAŞLIK -->
+  <div style="background:var(--accent);color:#fff;border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div style="font-size:13px;font-weight:700;">DETAYLI RAPOR</div>
+      <div style="font-size:10px;opacity:.8;margin-top:2px;">Terapi Tarihi: ${firstDate} - ${lastDate}</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:10px;opacity:.8;">Seri No</div>
+      <div style="font-family:var(--mono);font-size:11px;">${allRecords[0].data['serino']||'—'}</div>
+    </div>
+  </div>
+
+  <!-- ÖZET KULLANIM RAPORU -->
+  <div class="section">
+    <div class="sec-head"><div class="sec-title" style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:4px;">ÖZET KULLANIM RAPORU</div></div>
+    <table class="sum-table">
+      <tbody>
+        <tr><td>Toplam Gün</td><td>${totalDays} Gün</td><td>Kullanılmayan Günler</td><td>${unused} Gün</td></tr>
+        <tr><td>Kullanılan Günler</td><td>${usedDays} Gün</td><td>Ort. 4 Saat Altı</td><td>${below4} Gün</td></tr>
+        <tr><td>Ort. 4 Saat Üstü</td><td>${above4} Gün</td><td>Kullanılan Gün Ort. Saat</td><td>${fmtMin(avgSleep)}</td></tr>
+        <tr><td>Toplam Kullanım</td><td>${fmtMin(totalMin)}</td><td>1 Günde Min Kullanım</td><td>${minUse>0?fmtMin(minUse):'—'}</td></tr>
+        <tr><td>Tüm Günler Ort. Saat</td><td>${fmtMin(totalMin/totalDays)}</td><td>1 Günde Max Kullanım</td><td>${fmtMin(maxUse)}</td></tr>
+        <tr><td>Terapi Modu</td><td>${allRecords[0].data['Therapy Mode']||'—'}</td><td>AHI</td><td style="font-family:var(--mono);font-weight:700;color:${aAHI>5?'var(--danger)':aAHI>2?'var(--warn)':'var(--accent2)'}">${aAHI.toFixed(2)}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CİHAZ GİRİŞ AYARLARI -->
+  <div class="cs">
+    <div class="cs-head" style="background:var(--light);">
+      <span class="cs-label" style="background:var(--accent);">Cihaz Giriş Ayarları</span>
+      <div class="cs-avg-box">
+        <span class="cs-avg-label">CPAP</span><span class="cs-avg-val" style="background:var(--accent);">${allRecords[0].data['EPAP']||'—'}</span>
+        <span class="cs-avg-label">Ort.P95</span><span class="cs-avg-val" style="background:#64748b;">${(parseFloat(allRecords[0].data['EPAP']||0)-0.6).toFixed(1)}</span>
+      </div>
+    </div>
+    <div class="cs-body"><div class="chart-wrap h120"><canvas id="cvEPAP"></canvas></div></div>
+  </div>
+
+  <!-- AHI + AI CHARTS -->
+  <div class="cs">
+    <div class="cs-head" style="background:var(--light);">
+      <span class="cs-label" style="background:#6366f1;">Apne İndeksi</span>
+      <div class="cs-avg-box">
+        <span class="cs-avg-label">AI</span>
+        <span class="cs-avg-val" style="background:#6366f1;">${avg(aiArr).toFixed(2)}</span>
+      </div>
+    </div>
+    <div class="cs-body"><div class="chart-wrap h120"><canvas id="cvAI"></canvas></div></div>
+  </div>
+
+  <div class="cs">
+    <div class="cs-head" style="background:var(--light);">
+      <span class="cs-label" style="background:#6366f1;">Hipo Apne İndeksi</span>
+      <div class="cs-avg-box">
+        <span class="cs-avg-label">AHI</span>
+        <span class="cs-avg-val" style="background:#6366f1;">${aAHI.toFixed(2)}</span>
+      </div>
+    </div>
+    <div class="cs-body"><div class="chart-wrap h120"><canvas id="cvAHI"></canvas></div></div>
+  </div>
+
+  <!-- KAÇAK -->
+  <div class="cs">
+    <div class="cs-head" style="background:var(--light);">
+      <span class="cs-label" style="background:var(--pink);">Kaçak</span>
+      <div class="cs-avg-box">
+        <span class="cs-avg-label">KAÇAK (L)</span>
+        <span class="cs-avg-val" style="background:var(--pink);">${aLeak.toFixed(2)}</span>
+      </div>
+    </div>
+    <div class="cs-body"><div class="chart-wrap h120"><canvas id="cvLeak"></canvas></div></div>
+  </div>
+
+  <!-- GÜNLÜK KULLANIMLAR -->
+  <div class="cs">
+    <div class="cs-head" style="background:var(--light);">
+      <span class="cs-label" style="background:#475569;">Günlük Kullanımlar</span>
+    </div>
+    <div class="cs-body"><div class="chart-wrap h140"><canvas id="cvUsage"></canvas></div></div>
+  </div>
+
+  <!-- GÜNLÜK TABLO -->
+  <div class="section">
+    <div class="sec-head"><div class="sec-title" style="background:#475569;color:#fff;padding:2px 8px;border-radius:4px;">Günlük Kullanım Tablosu</div></div>
+    <div class="daily-wrap">
+      <table class="daily-table">
+        <thead>
+          <tr><th>Tarih</th><th>Mod</th><th>Süre</th><th>AHI</th><th>AI</th><th>Kaçak</th><th>EPAP</th><th>Durum</th></tr>
+        </thead>
+        <tbody>
+          ${allRecords.map(r=>{
+            const m=toMin(r.data['Sleep Duration']);
+            const ahi=parseFloat(r.data['AHI']||0);
+            const leak=parseFloat(r.data['Leak']||0);
+            const cls=m===0?'unused':m>=240?'used4p':'used4m';
+            const durColor=m>=240?'var(--accent2)':m>0?'var(--danger)':'#ccc';
+            return`<tr class="${cls}">
+              <td style="font-family:var(--mono);font-size:9px;">${r.data['Date']||'—'}</td>
+              <td>${r.data['Therapy Mode']||'—'}</td>
+              <td><span style="color:${durColor};font-weight:700;font-family:var(--mono);">${r.data['Sleep Duration']||'00:00'}</span></td>
+              <td style="color:${ahi>5?'var(--danger)':ahi>2?'var(--warn)':'inherit'};font-family:var(--mono);">${ahi}</td>
+              <td style="font-family:var(--mono);">${r.data['AI']||'0'}</td>
+              <td style="color:${leak>24?'var(--danger)':leak>15?'var(--warn)':'inherit'};font-family:var(--mono);">${leak}</td>
+              <td style="font-family:var(--mono);">${r.data['EPAP']||'—'}</td>
+              <td><span class="badge ${ahi>5||leak>24?'b-danger':ahi>2||leak>15?'b-warn':m===0?'b-info':'b-ok'}">${ahi>5||leak>24?'Kritik':ahi>2||leak>15?'Dikkat':m===0?'Kullanılmadı':'Normal'}</span></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GENEL UYARILAR -->
+  <div class="section">
+    <div class="sec-head"><div class="sec-title">Uyarılar</div></div>
+    <div id="ov-alerts"></div>
+  </div>
+
+  <button class="btn-print" onclick="window.print()" style="width:100%;margin-bottom:16px;">🖨️ Raporu Yazdır / PDF Kaydet</button>
+
+  </div>`;
+
+  // charts
+  setTimeout(()=>{
+    const cg='rgba(200,210,220,.4)',ct='#94a3b8';
+    drawBar('cvEPAP',dates,epapArr,'rgba(26,86,160,.7)',cg,ct,12,14);
+    drawBar('cvAI',dates,aiArr,'rgba(99,102,241,.7)',cg,ct,0,null);
+    drawBar('cvAHI',dates,ahiArr,'rgba(99,102,241,.7)',cg,ct,0,null,5);
+    drawBarLeak('cvLeak',dates,leakArr,cg,ct);
+    drawUsage('cvUsage',dates,sleepArr,cg,ct);
+    buildOvAlerts();
+  },80);
+}
+
+function drawBar(id,labels,data,color,cg,ct,ymin,ymax,threshold){
+  const ctx=document.getElementById(id);if(!ctx)return;
+  if(charts[id])charts[id].destroy();
+  const ds=[{data,backgroundColor:data.map(v=>threshold&&v>threshold?'rgba(239,68,68,.7)':color),
+    borderRadius:3,borderSkipped:false}];
+  if(threshold) ds.push({type:'line',data:data.map(()=>threshold),borderColor:'rgba(239,68,68,.5)',
+    borderDash:[4,3],borderWidth:1,pointRadius:0,fill:false});
+  charts[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:ct,font:{size:8},maxRotation:45},grid:{color:cg}},
+        y:{min:ymin,max:ymax||undefined,ticks:{color:ct,font:{size:9}},grid:{color:cg}}}}});
+}
+
+function drawBarLeak(id,labels,data,cg,ct){
+  const ctx=document.getElementById(id);if(!ctx)return;
+  if(charts[id])charts[id].destroy();
+  charts[id]=new Chart(ctx,{type:'bar',data:{labels,
+    datasets:[{data,backgroundColor:data.map(v=>v>24?'rgba(239,68,68,.7)':v>15?'rgba(245,158,11,.7)':'rgba(236,72,153,.7)'),
+      borderRadius:3,borderSkipped:false},
+    {type:'line',data:data.map(()=>24),borderColor:'rgba(239,68,68,.4)',
+      borderDash:[4,3],borderWidth:1,pointRadius:0,fill:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:ct,font:{size:8},maxRotation:45},grid:{color:cg}},
+        y:{ticks:{color:ct,font:{size:9}},grid:{color:cg}}}}});
+}
+
+function drawUsage(id,labels,data,cg,ct){
+  const ctx=document.getElementById(id);if(!ctx)return;
+  if(charts[id])charts[id].destroy();
+  charts[id]=new Chart(ctx,{type:'bar',data:{labels,
+    datasets:[{data:data.map(m=>+(m/60).toFixed(2)),
+      backgroundColor:data.map(m=>m===0?'rgba(203,213,225,.5)':m>=240?'rgba(34,197,94,.7)':'rgba(239,68,68,.7)'),
+      borderRadius:3,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:ct,font:{size:8},maxRotation:45},grid:{color:cg}},
+        y:{ticks:{color:ct,font:{size:9},callback:v=>v+'s'},grid:{color:cg}}}}});
+}
+
+function buildOvAlerts(){
+  const container=document.getElementById('ov-alerts');
+  if(!container)return;
+  const leakArr=allRecords.map(r=>parseFloat(r.data['Leak']||0));
+  const ahiArr=allRecords.map(r=>parseFloat(r.data['AHI']||0));
+  const sleepArr=allRecords.map(r=>toMin(r.data['Sleep Duration']));
+  const aLeak=avg(leakArr), aAHI=avg(ahiArr.filter(v=>v>0)||[0]);
+  const below4=allRecords.filter(r=>{const m=toMin(r.data['Sleep Duration']);return m>0&&m<240;}).length;
+  const critLeak=allRecords.filter(r=>parseFloat(r.data['Leak']||0)>24).length;
+  const alerts=[];
+  if(aLeak>24) alerts.push({l:'danger',i:'🚨',t:`Ortalama Kaçak Kritik: ${aLeak.toFixed(1)} L/dk`,d:'Maske uyumunu kontrol edin.'});
+  else if(aLeak>15) alerts.push({l:'warn',i:'⚠️',t:`Ortalama Kaçak Yüksek: ${aLeak.toFixed(1)} L/dk`,d:'Maske pozisyonuna dikkat.'});
+  if(critLeak>0) alerts.push({l:'danger',i:'🚨',t:`${critLeak} gecede kaçak eşiği aşıldı`,d:'Bu gecelerde maske sızdırmışlığı kontrol edilmeli.'});
+  if(aAHI>5) alerts.push({l:'danger',i:'🚨',t:`Ortalama AHI Yüksek: ${aAHI.toFixed(2)}`,d:'Tedavi yetersiz olabilir, klinisyene danışın.'});
+  if(below4>3) alerts.push({l:'warn',i:'⚠️',t:`${below4} gecede kullanım 4 saatin altında`,d:'Düzenli kullanım için günlük en az 4 saat önerilir.'});
+  if(!alerts.length) alerts.push({l:'ok',i:'✅',t:'Genel Değerler Normal Sınırda',d:'Dönem içinde kritik uyarı tespit edilmedi.'});
+  container.innerHTML=alerts.map(a=>`<div class="alert ${a.l}">
+    <span style="font-size:18px">${a.i}</span>
+    <div><div class="a-title">${a.t}</div><div class="a-desc">${a.d}</div></div>
+  </div>`).join('');
+}
+
+// ═══════════ DETAIL ═══════════
+function selectRecord(i){
+  activeIdx=i; renderSidebar();
+  const d=allRecords[i].data;
+  const ahi=parseFloat(d['AHI']||0),ai=parseFloat(d['AI']||0);
+  const leak=parseFloat(d['Leak']||0),sleepMin=toMin(d['Sleep Duration']);
+  const epap=parseFloat(d['EPAP']||0),ipap=parseFloat(d['IPAP']||0);
+
+  const main=document.getElementById('main');
+  main.innerHTML=`<div style="animation:fadeUp .3s ease">
+
+  <!-- BAŞLIK -->
+  <div style="background:var(--accent);color:#fff;border-radius:10px;padding:11px 13px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div style="font-size:12px;font-weight:700;">${d['Date']||'?'} — ${d['Therapy Mode']||'?'}</div>
+      <div style="font-size:9px;opacity:.8;margin-top:1px;">Seri: ${d['serino']||'—'}</div>
+    </div>
+    <div style="text-align:right;font-size:10px;opacity:.8;">${d['Sleep Time']||'—'} → ${d['Wakeup Time']||'—'}</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="swTab(this,'dt-ozet')">Özet</div>
+    <div class="tab" onclick="swTab(this,'dt-grafik')">Grafik</div>
+    <div class="tab" onclick="swTab(this,'dt-rapor')">Rapor</div>
+    <div class="tab" onclick="swTab(this,'dt-esik')">Eşik</div>
+  </div>
+
+  <!-- ÖZET -->
+  <div class="tab-content active" id="dt-ozet">
+    <div id="det-alerts" style="margin-bottom:10px;"></div>
+    <div class="section">
+      <div class="sec-head"><div class="sec-title" style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:4px;">SEANS BİLGİLERİ</div></div>
+      <table class="sum-table">
+        <tbody>
+          <tr><td>Terapi Modu</td><td>${d['Therapy Mode']||'—'}</td><td>Seri No</td><td style="font-family:var(--mono);font-size:9px;">${d['serino']||'—'}</td></tr>
+          <tr><td>EPAP Basıncı</td><td style="font-family:var(--mono);font-weight:700;">${epap} cmH₂O</td><td>IPAP Basıncı</td><td style="font-family:var(--mono);font-weight:700;">${ipap} cmH₂O</td></tr>
+          <tr><td>Uyku Başlangıcı</td><td style="font-family:var(--mono);">${d['Sleep Time']||'—'}</td><td>Uyanış Saati</td><td style="font-family:var(--mono);">${d['Wakeup Time']||'—'}</td></tr>
+          <tr><td>Uyku Süresi</td><td style="font-family:var(--mono);font-weight:700;color:${sleepMin<240&&sleepMin>0?'var(--danger)':'var(--accent2)'}">${d['Sleep Duration']||'—'}</td><td>Hasta Kilosu</td><td>${d['Patient Weight']||'—'}</td></tr>
+          <tr><td>AHI</td><td style="font-family:var(--mono);font-weight:700;color:${ahi>5?'var(--danger)':ahi>2?'var(--warn)':'var(--accent2)'}">${ahi}</td><td>AI</td><td style="font-family:var(--mono);font-weight:700;color:${ai>5?'var(--danger)':ai>2?'var(--warn)':'var(--accent2)'}">${ai}</td></tr>
+          <tr><td>Kaçak</td><td style="font-family:var(--mono);font-weight:700;color:${leak>24?'var(--danger)':leak>15?'var(--warn)':'var(--accent2)'}">${leak} L/dk</td><td>SpO2</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card c-blue"><div class="sc-label">EPAP</div><div class="sc-val">${epap}</div><div class="sc-unit">cmH₂O</div></div>
+      <div class="stat-card ${ahi>5?'c-danger':ahi>2?'c-warn':'c-ok'}"><div class="sc-label">AHI</div><div class="sc-val">${ahi}</div><div class="sc-unit">/saat</div></div>
+      <div class="stat-card ${ai>5?'c-danger':ai>2?'c-warn':'c-ok'}"><div class="sc-label">AI</div><div class="sc-val">${ai}</div><div class="sc-unit">/saat</div></div>
+      <div class="stat-card ${leak>24?'c-danger':leak>15?'c-warn':'c-ok'}"><div class="sc-label">Kaçak</div><div class="sc-val">${leak}</div><div class="sc-unit">L/dk</div></div>
+      <div class="stat-card ${sleepMin<240&&sleepMin>0?'c-warn':'c-ok'}"><div class="sc-label">Uyku</div><div class="sc-val" style="font-size:14px;">${d['Sleep Duration']||'—'}</div></div>
+    </div>
+  </div>
+
+  <!-- GRAFİK -->
+  <div class="tab-content" id="dt-grafik">
+    <div class="cs"><div class="cs-head" style="background:var(--light);"><span class="cs-label" style="background:var(--accent);">Basınç</span><span style="font-family:var(--mono);font-size:11px;font-weight:700;">${epap} cmH₂O</span></div>
+      <div class="cs-body"><div class="chart-wrap h120"><canvas id="dg-pressure"></canvas></div></div></div>
+    <div class="cs"><div class="cs-head" style="background:var(--light);"><span class="cs-label" style="background:#6366f1;">AHI / AI</span></div>
+      <div class="cs-body"><div class="chart-wrap h120"><canvas id="dg-ahi"></canvas></div></div></div>
+    <div class="cs"><div class="cs-head" style="background:var(--light);"><span class="cs-label" style="background:var(--pink);">Kaçak</span><span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${leak>24?'var(--danger)':'inherit'}">${leak} L/dk</span></div>
+      <div class="cs-body"><div class="chart-wrap h120"><canvas id="dg-leak"></canvas></div></div></div>
+  </div>
+
+  <!-- RAPOR -->
+  <div class="tab-content" id="dt-rapor">
+    <div class="section">
+      <table class="rtable">
+        <thead><tr><th>Parametre</th><th>Değer</th><th>Referans</th><th>Durum</th></tr></thead>
+        <tbody>
+          ${rRow('Tarih',d['Date']||'—','—','info')}
+          ${rRow('Terapi Modu',d['Therapy Mode']||'—','—','info')}
+          ${rRow('Seri No',d['serino']||'—','—','info')}
+          ${rRow('EPAP',epap+' cmH₂O','4–20','info')}
+          ${rRow('IPAP',ipap+' cmH₂O','4–30','info')}
+          ${rRow('AHI',ahi+' /saat','< 5',ahi>5?'danger':ahi>2?'warn':'ok')}
+          ${rRow('AI',ai+' /saat','< 5',ai>5?'danger':ai>2?'warn':'ok')}
+          ${rRow('Kaçak',leak+' L/dk','< 24',leak>24?'danger':leak>15?'warn':'ok')}
+          ${rRow('Uyku Süresi',d['Sleep Duration']||'—','≥ 4 saat',sleepMin<240&&sleepMin>0?'warn':'ok')}
+          ${rRow('Uyku Başlangıcı',d['Sleep Time']||'—','—','info')}
+          ${rRow('Uyanış Saati',d['Wakeup Time']||'—','—','info')}
+          ${rRow('Hasta Kilosu',d['Patient Weight']||'—','—','info')}
+          ${rRow('SpO2','—','> 90%','info')}
+          ${rRow('Apne','—','< 5','info')}
+          ${rRow('Hipopne','—','< 5','info')}
+          ${rRow('Horlama','—','—','info')}
+        </tbody>
+      </table>
+      <button class="btn-print" onclick="window.print()">🖨️ Yazdır / PDF Kaydet</button>
+    </div>
+  </div>
+
+  <!-- EŞİK -->
+  <div class="tab-content" id="dt-esik">
+    <div class="th-box">
+      <div style="font-size:11px;font-weight:700;margin-bottom:10px;">⚙️ Eşik Değerleri</div>
+      <div class="th-row"><label>Max. Kaçak</label><input class="th-input" id="th-leak" type="number" value="24"><span class="th-unit">L/dk</span></div>
+      <div class="th-row"><label>Max. AHI</label><input class="th-input" id="th-ahi" type="number" value="5"><span class="th-unit">/saat</span></div>
+      <div class="th-row"><label>Max. AI</label><input class="th-input" id="th-ai" type="number" value="5"><span class="th-unit">/saat</span></div>
+      <div class="th-row"><label>Min. Uyku (dk)</label><input class="th-input" id="th-sleep" type="number" value="240"><span class="th-unit">dk</span></div>
+      <button class="btn-check" onclick="runTh(${i})">🔍 Kontrol Et</button>
+    </div>
+    <div id="th-res"></div>
+  </div>
+
+  </div>`;
+
+  buildDetAlerts(d);
+
+  // lazy charts for grafik tab
+  let drawn=false;
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click',()=>{
+      if(t.textContent==='Grafik'&&!drawn){drawn=true;setTimeout(()=>drawDetCharts(d),60);}
+    });
+  });
+}
+
+function buildDetAlerts(d){
+  const ahi=parseFloat(d['AHI']||0),ai=parseFloat(d['AI']||0);
+  const leak=parseFloat(d['Leak']||0),sm=toMin(d['Sleep Duration']);
+  const arr=[];
+  if(leak>24) arr.push({l:'danger',i:'🚨',t:`Yüksek Kaçak: ${leak} L/dk`,d:'Maske uyumunu kontrol edin (>24 L/dk).'});
+  else if(leak>15) arr.push({l:'warn',i:'⚠️',t:`Orta Kaçak: ${leak} L/dk`,d:'Maske pozisyonuna dikkat.'});
+  if(ahi>5) arr.push({l:'danger',i:'🚨',t:`Yüksek AHI: ${ahi}`,d:'Tedavi yetersiz olabilir.'});
+  if(ai>5)  arr.push({l:'danger',i:'🚨',t:`Yüksek AI: ${ai}`,d:'Apne olayları yüksek.'});
+  if(sm<240&&sm>0) arr.push({l:'warn',i:'⚠️',t:`Kısa Uyku: ${d['Sleep Duration']}`,d:'Min. 4 saat önerilir.'});
+  if(!arr.length) arr.push({l:'ok',i:'✅',t:'Tüm Değerler Normal',d:'Bu seans için kritik uyarı yok.'});
+  document.getElementById('det-alerts').innerHTML=arr.map(a=>`<div class="alert ${a.l}">
+    <span style="font-size:17px">${a.i}</span>
+    <div><div class="a-title">${a.t}</div><div class="a-desc">${a.d}</div></div>
+  </div>`).join('');
+}
+
+function drawDetCharts(d){
+  const cg='rgba(200,210,220,.4)',ct='#94a3b8';
+  const epap=parseFloat(d['EPAP']||0),ipap=parseFloat(d['IPAP']||0);
+  const ahi=parseFloat(d['AHI']||0),ai=parseFloat(d['AI']||0);
+  const leak=parseFloat(d['Leak']||0);
+  // pressure bar
+  const pc=document.getElementById('dg-pressure');
+  if(pc){if(charts['dg-pressure'])charts['dg-pressure'].destroy();
+    charts['dg-pressure']=new Chart(pc,{type:'bar',data:{labels:['EPAP','IPAP'],
+      datasets:[{data:[epap,ipap],backgroundColor:['rgba(26,86,160,.7)','rgba(26,86,160,.4)'],borderRadius:5}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{color:ct,font:{size:10}},grid:{color:cg}},y:{min:0,max:20,ticks:{color:ct,font:{size:9}},grid:{color:cg}}}}});}
+  // ahi/ai bar
+  const ac=document.getElementById('dg-ahi');
+  if(ac){if(charts['dg-ahi'])charts['dg-ahi'].destroy();
+    charts['dg-ahi']=new Chart(ac,{type:'bar',data:{labels:['AHI','AI'],
+      datasets:[{data:[ahi,ai],backgroundColor:[ahi>5?'rgba(239,68,68,.7)':'rgba(99,102,241,.7)',ai>5?'rgba(239,68,68,.7)':'rgba(99,102,241,.4)'],borderRadius:5}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{color:ct,font:{size:10}},grid:{color:cg}},y:{ticks:{color:ct,font:{size:9}},grid:{color:cg}}}}});}
+  // leak
+  const lc=document.getElementById('dg-leak');
+  if(lc){if(charts['dg-leak'])charts['dg-leak'].destroy();
+    charts['dg-leak']=new Chart(lc,{type:'bar',data:{labels:['Kaçak'],
+      datasets:[{data:[leak],backgroundColor:[leak>24?'rgba(239,68,68,.7)':leak>15?'rgba(245,158,11,.7)':'rgba(236,72,153,.7)'],borderRadius:5}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{color:ct,font:{size:10}},grid:{color:cg}},y:{ticks:{color:ct,font:{size:9}},grid:{color:cg}}}}});}
+}
+
+function rRow(p,v,ref,s){
+  const b=s==='ok'?'<span class="badge b-ok">Normal</span>':s==='warn'?'<span class="badge b-warn">Dikkat</span>':
+    s==='danger'?'<span class="badge b-danger">Kritik</span>':'<span class="badge b-info">Bilgi</span>';
+  return`<tr><td>${p}</td><td style="font-family:var(--mono)">${v}</td><td style="color:var(--muted)">${ref}</td><td>${b}</td></tr>`;
+}
+
+function runTh(idx){
+  const d=allRecords[idx].data;
+  const tl=parseFloat(document.getElementById('th-leak').value)||24;
+  const ta=parseFloat(document.getElementById('th-ahi').value)||5;
+  const ti=parseFloat(document.getElementById('th-ai').value)||5;
+  const ts=parseFloat(document.getElementById('th-sleep').value)||240;
+  const leak=parseFloat(d['Leak']||0),ahi=parseFloat(d['AHI']||0);
+  const ai=parseFloat(d['AI']||0),sm=toMin(d['Sleep Duration']);
+  const arr=[];
+  if(leak>tl) arr.push({l:'danger',i:'🚨',t:`Kaçak Eşik Aşıldı: ${leak} > ${tl} L/dk`});
+  if(ahi>ta)  arr.push({l:'danger',i:'🚨',t:`AHI Eşik Aşıldı: ${ahi} > ${ta}`});
+  if(ai>ti)   arr.push({l:'danger',i:'🚨',t:`AI Eşik Aşıldı: ${ai} > ${ti}`});
+  if(sm<ts&&sm>0) arr.push({l:'warn',i:'⚠️',t:`Uyku Kısa: ${d['Sleep Duration']} < ${Math.floor(ts/60)}s`});
+  if(!arr.length) arr.push({l:'ok',i:'✅',t:'Tüm Eşikler Geçildi'});
+  document.getElementById('th-res').innerHTML=arr.map(a=>`<div class="alert ${a.l}">
+    <span style="font-size:17px">${a.i}</span><div><div class="a-title">${a.t}</div></div></div>`).join('');
+}
+
+function swTab(el,id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+// ═══════════ PWA ═══════════
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;
+  document.getElementById('installBanner').style.display='flex';});
+function installApp(){if(!deferredPrompt)return;deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('installBanner').style.display='none';});}
+</script>
+</body>
+</html>
