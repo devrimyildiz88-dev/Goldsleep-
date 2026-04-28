@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goldslep Pro Analiz</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        :root { --blue: #1a56a0; --pink: #e91e8c; --light: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light); padding: 10px; margin: 0; }
+        .container { background: white; max-width: 850px; margin: 0 auto; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        header { border-bottom: 3px solid var(--blue); padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 6px; font-size: 14px; margin-bottom: 25px; }
+        h2 { color: var(--blue); font-size: 18px; border-left: 5px solid var(--blue); padding-left: 12px; margin: 30px 0 15px 0; text-transform: uppercase; }
+        .chart-wrap { height: 300px; margin-bottom: 20px; position: relative; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+        th { background: var(--blue); color: white; padding: 12px; border: 1px solid #dee2e6; }
+        td { padding: 10px; border: 1px solid #dee2e6; text-align: center; }
+        .print-btn { background: var(--blue); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        @media print { .no-print { display: none; } .container { box-shadow: none; width: 100%; max-width: none; padding: 0; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 style="color: var(--blue); margin: 0; font-size: 24px;">GOLDSLEEP ANALİZ</h1>
+            <button class="print-btn no-print" onclick="window.print()">RAPORU PDF KAYDET</button>
+        </header>
+        
+        <div class="info-grid">
+            <div><strong>Versiyon:</strong> 1.5.0</div>
+            <div><strong>Terapi Modu:</strong> CPAP</div>
+            <div><strong>Rapor Tarihi:</strong> <span id="curDate">09.03.2026</span></div>
+            <div><strong>Hasta Adı:</strong> _________________</div>
+        </div>
+
+        <h2>Kullanım Süresi (Saat)</h2>
+        <div class="chart-wrap"><canvas id="usageChart"></canvas></div>
+
+        <h2>AHI İndeksi</h2>
+        <div class="chart-wrap"><canvas id="ahiChart"></canvas></div>
+
+        <h2>Detaylı Olay Listesi</h2>
+        <table id="dataTable">
+            <thead><tr><th>Tarih</th><th>Kullanım</th><th>AHI</th><th>Kaçak</th><th>Horlama</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('curDate').innerText = new Date().toLocaleDateString('tr-TR');
+        const days = ['01.03', '02.03', '03.03', '04.03', '05.03', '06.03', '07.03'];
+        
+        // PDF ile aynı renklerde grafikler
+        const config = (label, data, color) => ({
+            type: 'bar',
+            data: { labels: days, datasets: [{ label, data, backgroundColor: color, borderRadius: 5 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+
+        new Chart(document.getElementById('usageChart'), config('Saat', [7.5, 6.2, 8.4, 4.8, 7.1, 6.5, 7.9], '#1a56a0'));
+        new Chart(document.getElementById('ahiChart'), config('AHI', [2.4, 3.1, 1.5, 4.9, 2.1, 2.8, 1.7], '#e91e8c'));
+
+        const tbody = document.querySelector('#dataTable tbody');
+        days.forEach(d => {
+            tbody.innerHTML += `<tr><td>${d}.2026</td><td>7:30</td><td>2.4</td><td>12 L/dk</td><td>00:08</td></tr>`;
+        });
+    </script>
+</body>
+</html>
