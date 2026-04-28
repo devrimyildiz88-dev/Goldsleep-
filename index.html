@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Goldslep Analiz</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a56a0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Goldslep">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --blu:#1a56a0;--yel:#f59e0b;--grn:#16a34a;--red:#dc2626;--ora:#ea580c;
+  --pur:#7c3aed;--teal:#0d9488;--cya:#0284c7;--pink:#db2777;--ind:#4f46e5;
+  --bg:#f0f4f8;--whi:#fff;--bor:#dde3ec;--mut:#64748b;--txt:#1e293b;
+  --font:'Nunito',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--txt);font-family:var(--font);display:flex;flex-direction:column;font-size:12px;}
+
+/* TOPBAR */
+.tb{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--blu);flex-shrink:0;}
+.tb-logo{display:flex;align-items:center;gap:7px;}
+.tb-icon{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:15px;}
+.tb-title{font-size:13px;font-weight:800;color:#fff;letter-spacing:.5px;}
+.tb-sub{font-size:8px;color:rgba(255,255,255,.7);letter-spacing:1px;}
+.tb-r{margin-left:auto;}
+.pill{font-size:10px;padding:3px 8px;border-radius:12px;background:rgba(255,255,255,.2);color:#fff;font-weight:700;}
+
+/* LAYOUT */
+.lay{display:flex;flex:1;overflow:hidden;}
+
+/* SIDEBAR */
+.sb{width:175px;flex-shrink:0;background:var(--whi);border-right:1px solid var(--bor);display:flex;flex-direction:column;overflow:hidden;}
+@media(max-width:540px){.sb{width:118px;}}
+.sb-head{padding:8px;border-bottom:1px solid var(--bor);display:flex;flex-direction:column;gap:5px;}
+.btn-p{display:flex;align-items:center;justify-content:center;gap:4px;background:var(--blu);color:#fff;font-weight:700;font-size:10px;padding:7px;border-radius:6px;cursor:pointer;border:none;width:100%;}
+.btn-s{display:flex;align-items:center;justify-content:center;gap:4px;background:transparent;border:1px solid var(--bor);color:var(--mut);font-size:10px;padding:6px;border-radius:6px;cursor:pointer;width:100%;}
+.btn-s:hover{border-color:var(--blu);color:var(--blu);}
+input[type=file]{display:none;}
+.fl{flex:1;overflow-y:auto;padding:5px;}
+.ov-i{padding:7px 7px;border-radius:6px;cursor:pointer;margin-bottom:3px;background:#f8fafc;border-left:3px solid var(--blu);}
+.ov-i:hover,.ov-i.act{background:#e8f0fb;}
+.ov-lbl{font-size:10px;font-weight:700;color:var(--blu);}
+.ov-sub{font-size:9px;color:var(--mut);margin-top:1px;}
+.fi{padding:6px 7px;border-radius:6px;cursor:pointer;margin-bottom:2px;border:1px solid transparent;}
+.fi:hover{background:#f8fafc;}
+.fi.act{background:#e8f0fb;border-color:rgba(26,86,160,.2);}
+.fi-n{font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fi-m{font-size:9px;color:var(--mut);margin-top:1px;}
+.fi-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:3px;}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:10px;background:var(--bg);}
+.wlc{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;gap:10px;}
+.wlc-i{font-size:48px;opacity:.2;}
+.wlc h2{font-size:15px;font-weight:700;color:var(--mut);}
+.wlc p{font-size:11px;color:var(--mut);max-width:210px;line-height:1.6;}
+
+/* TABS */
+.tabs{display:flex;background:var(--whi);border:1px solid var(--bor);border-radius:7px;overflow:hidden;margin-bottom:9px;}
+.tab{padding:6px 9px;font-size:10px;font-weight:700;cursor:pointer;color:var(--mut);flex:1;text-align:center;border-right:1px solid var(--bor);}
+.tab:last-child{border-right:none;}
+.tab.act{background:var(--blu);color:#fff;}
+.tp{display:none;}
+.tp.act{display:block;animation:fu .2s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+/* SCREEN CARDS */
+.card{background:var(--whi);border:1px solid var(--bor);border-radius:8px;margin-bottom:8px;overflow:hidden;}
+.card-head{padding:5px 9px;display:flex;align-items:center;justify-content:space-between;}
+.clbl{font-size:8px;font-weight:800;color:#fff;padding:2px 7px;border-radius:3px;letter-spacing:.3px;}
+.cavg{font-size:9px;font-weight:800;color:#fff;padding:1px 6px;border-radius:3px;}
+.cavg-lbl{font-size:8px;color:var(--mut);}
+.cbody{padding:5px 7px 7px;}
+.ch{position:relative;}
+.ch.h85{height:85px;}
+.ch.h95{height:95px;}
+.ch.h105{height:105px;}
+
+/* SUM TABLE */
+.sum-out{background:var(--whi);border:1px solid var(--bor);border-radius:8px;margin-bottom:8px;overflow:hidden;}
+.sum-bar{background:var(--blu);color:#fff;font-size:9px;font-weight:800;padding:4px 9px;letter-spacing:.5px;}
+.sum-g{display:grid;grid-template-columns:1fr 1fr;}
+.sum-r{display:flex;justify-content:space-between;align-items:center;padding:4px 9px;border-bottom:1px solid var(--bor);border-right:1px solid var(--bor);}
+.sum-r:nth-child(even){border-right:none;}
+.sum-r:nth-last-child(-n+2){border-bottom:none;}
+.sum-l{font-size:9px;color:var(--mut);font-weight:600;}
+.sum-v{font-size:9px;font-weight:800;color:var(--txt);}
+
+/* STAT ROW */
+.st-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:5px;margin-bottom:8px;}
+.sc{background:var(--whi);border:1px solid var(--bor);border-radius:7px;padding:7px 8px;border-left:3px solid;}
+.sc-l{font-size:8px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;}
+.sc-v{font-size:15px;font-weight:800;}
+.sc-u{font-size:8px;color:var(--mut);}
+
+/* ALERT */
+.alrt{display:flex;align-items:flex-start;gap:7px;padding:7px 9px;border-radius:6px;margin-bottom:5px;border-left:3px solid;}
+.alrt.danger{background:#fef2f2;border-color:var(--red);}
+.alrt.warn{background:#fffbeb;border-color:var(--yel);}
+.alrt.ok{background:#f0fdf4;border-color:var(--grn);}
+.at{font-size:10px;font-weight:700;}
+.ad{font-size:9px;color:var(--mut);margin-top:1px;}
+
+/* DAILY TABLE */
+.dt-w{overflow-x:auto;}
+.dt{width:100%;border-collapse:collapse;font-size:9px;}
+.dt th{padding:4px 5px;background:var(--blu);color:#fff;border:1px solid #1347880;text-align:center;font-weight:700;}
+.dt td{padding:3px 5px;border:1px solid var(--bor);text-align:center;}
+.dt tr.ok td{background:#f0fdf4;}
+.dt tr.warn td{background:#fef3c7;}
+.dt tr.danger td{background:#fee2e2;}
+.dt tr.unused td{color:#aaa;background:#f8fafc;}
+.dt tr:hover td{opacity:.85;cursor:pointer;}
+
+/* INFO HEADER */
+.ih{background:var(--whi);border:1px solid var(--bor);border-radius:8px;padding:9px;margin-bottom:8px;}
+.ih-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.gs-logo{font-size:17px;font-weight:900;letter-spacing:1px;}
+.gs-logo b{color:var(--blu);}
+.gs-logo span{color:var(--yel);}
+.ih-div{height:2px;background:linear-gradient(90deg,var(--blu),var(--yel),var(--blu));border-radius:2px;margin:6px 0;}
+.ih-bdg{display:flex;gap:5px;flex-wrap:wrap;}
+.bdg{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;color:#fff;}
+
+/* INSTALL */
+#ib{display:none;position:fixed;bottom:0;left:0;right:0;z-index:999;background:var(--blu);padding:10px 14px;align-items:center;justify-content:space-between;}
+.ib-ok{background:#fff;color:var(--blu);font-weight:800;padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:10px;}
+.ib-no{background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:9px;}
+</style>
+</head>
+<body>
+<div class="tb">
+  <div class="tb-logo">
+    <div class="tb-icon">🫁</div>
+    <div><div class="tb-title">GOLD<span style="color:#fbbf24">SLEEP</span></div><div class="tb-sub">ANALİZ SİSTEMİ</div></div>
+  </div>
+  <div class="tb-r"><div class="pill" id="topCount">0 gün</div></div>
+</div>
+
+<div class="lay">
+  <div class="sb">
+    <div class="sb-head">
+      <label class="btn-p" for="folderIn">📁 Klasör Seç</label>
+      <input type="file" id="folderIn" webkitdirectory multiple accept=".gsd">
+      <label class="btn-s" for="filesIn">📄 Dosya Seç</label>
+      <input type="file" id="filesIn" multiple accept=".gsd">
+    </div>
+    <div class="fl" id="fileList">
+      <div style="padding:16px 6px;text-align:center;color:var(--mut);font-size:9px;line-height:1.8;">GSD klasörünü seçin</div>
+    </div>
+  </div>
+  <div class="main" id="main">
+    <div class="wlc">
+      <div class="wlc-i">🫁</div>
+      <h2>Goldslep Detaylı Analiz</h2>
+      <p>Sol taraftan <strong>Klasör Seç</strong> ile cihazdan kopyaladığınız GSD klasörünü seçin.</p>
+    </div>
+  </div>
+</div>
+
+<div id="ib">
+  <div style="color:#fff"><div style="font-size:11px;font-weight:800;">📲 Ana Ekrana Ekle</div></div>
+  <div style="display:flex;gap:5px;">
+    <button class="ib-no" onclick="document.getElementById('ib').style.display='none'">Sonra</button>
+    <button class="ib-ok" onclick="installApp()">Kur</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let DR=[], AI=-2, CH={};
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+const toMin=t=>{if(!t)return 0;const p=t.split(':');return+p[0]*60+(+p[1]||0);};
+const fmtMin=m=>{const h=Math.floor(m/60),n=Math.round(m%60);return h+'s'+(n<10?'0':'')+n+'dk';};
+const fmtH=m=>{const h=Math.floor(m/60),n=Math.round(m%60);return h+' Saat'+(n>0?' '+n+' Dakika':'');};
+const pDate=s=>{if(!s)return 0;const p=s.split('.');return p.length===3?new Date(p[2],p[1]-1,p[0]).getTime():0;};
+const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:0;
+const median=a=>{if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y);const m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;};
+const todayStr=()=>new Date().toLocaleDateString('tr-TR');
+const shortDate=s=>{if(!s)return'';const p=s.split('.');return p.length===3?p[0]+'.'+p[1]:'';};/* DD.MM */
+
+// ═══════════════════════════════════════════
+// PARSE GSD
+// ═══════════════════════════════════════════
+function parseGSD(txt,fn){
+  const d={_fn:fn,_recs:[]};
+  txt.split('\n').forEach(l=>{
+    l=l.trim();if(!l)return;
+    if(l.startsWith('Record')){
+      const m=l.match(/(\d+:\d+),period:(\d+),event:(\d+)/);
+      if(m)d._recs.push({time:m[1],period:+m[2],event:+m[3]});
+    } else {
+      const eq=l.indexOf('=');
+      if(eq>-1)d[l.slice(0,eq).trim()]=l.slice(eq+1).trim();
+    }
+  });
+  return d;
+}
+
+// ═══════════════════════════════════════════
+// MERGE BY DATE — deduplicate + weighted avg
+// ═══════════════════════════════════════════
+function mergeByDate(raw){
+  // Remove exact duplicates (same Date+SleepTime+Duration)
+  const seen=new Set();
+  const uniq=raw.filter(r=>{
+    const k=(r['Date']||'')+'|'+(r['Sleep Time']||'')+'|'+(r['Sleep Duration']||'');
+    if(seen.has(k))return false;seen.add(k);return true;
+  });
+  // Group by date
+  const grp={};
+  uniq.forEach(r=>{const d=r['Date']||'?';if(!grp[d])grp[d]=[];grp[d].push(r);});
+  const out=[];
+  Object.keys(grp).forEach(date=>{
+    const ss=grp[date];
+    const totalMin=ss.reduce((s,r)=>s+toMin(r['Sleep Duration']),0);
+    // LEAK: median of sessions >= 10 min (filter out mask-on/off attempts)
+    const validLeaks=ss.filter(r=>toMin(r['Sleep Duration'])>=10).map(r=>parseFloat(r['Leak']||0));
+    const leak=validLeaks.length>0?Math.round(median(validLeaks)*10)/10:0;
+    // AHI/AI: weighted by duration
+    let wAHI=0,wAI=0,wT=0;
+    ss.forEach(r=>{const m=toMin(r['Sleep Duration']);wAHI+=parseFloat(r['AHI']||0)*m;wAI+=parseFloat(r['AI']||0)*m;wT+=m;});
+    const base=ss[0];
+    // Events from all sessions
+    const evts=ss.flatMap(s=>s._recs||[]);
+    out.push({
+      date,
+      mode:base['Therapy Mode']||'CPAP',
+      epap:parseFloat(base['EPAP']||0),
+      ipap:parseFloat(base['IPAP']||0),
+      sleepTime:ss[0]['Sleep Time']||'—',
+      wakeTime:ss[ss.length-1]['Wakeup Time']||'—',
+      totalMin,
+      ahi:wT>0?Math.round(wAHI/wT*100)/100:0,
+      ai:wT>0?Math.round(wAI/wT*100)/100:0,
+      leak,
+      serino:base['serino']||'—',
+      weight:base['Patient Weight']||'—',
+      sessions:ss.length,
+      evts,
+    });
+  });
+  out.sort((a,b)=>pDate(a.date)-pDate(b.date));
+  return out;
+}
+
+// ═══════════════════════════════════════════
+// FILE INPUT
+// ═══════════════════════════════════════════
+document.getElementById('folderIn').addEventListener('change',handleF);
+document.getElementById('filesIn').addEventListener('change',handleF);
+function handleF(e){
+  const files=Array.from(e.target.files).filter(f=>f.name.toLowerCase().endsWith('.gsd'));
+  if(!files.length){alert('GSD dosyası bulunamadı.');return;}
+  let done=0;const raw=[];
+  files.forEach(f=>{
+    const rd=new FileReader();
+    rd.onload=ev=>{
+      raw.push(parseGSD(ev.target.result,f.name));
+      if(++done===files.length){
+        DR=mergeByDate(raw);
+        document.getElementById('topCount').textContent=DR.length+' gün';
+        renderSB();showOV();
+      }
+    };
+    rd.readAsText(f);
+  });
+  e.target.value='';
+}
+
+// ═══════════════════════════════════════════
+// STATUS
+// ═══════════════════════════════════════════
+function st(d){
+  if(d.leak>24||d.ahi>5)return{c:'#dc2626',l:'danger'};
+  if(d.leak>15||d.ahi>2)return{c:'#f59e0b',l:'warn'};
+  if(d.totalMin===0)return{c:'#cbd5e1',l:'unused'};
+  return{c:'#16a34a',l:'ok'};
+}
+
+// ═══════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════
+function renderSB(){
+  const list=document.getElementById('fileList');
+  let h=`<div class="ov-i ${AI===-1?'act':''}" onclick="showOV()">
+    <div class="ov-lbl">📊 Genel Bakış</div>
+    <div class="ov-sub">${DR.length} gün · Tüm dönem</div>
+  </div>`;
+  h+=DR.map((d,i)=>{
+    const s=st(d);
+    return`<div class="fi ${AI===i?'act':''}" onclick="selDay(${i})">
+      <div class="fi-n"><span class="fi-dot" style="background:${s.c}"></span>${d.date}</div>
+      <div class="fi-m">${d.mode}·AHI:${d.ahi}·${fmtMin(d.totalMin)}</div>
+    </div>`;
+  }).join('');
+  list.innerHTML=h;
+}
+
+// ═══════════════════════════════════════════
+// CALC STATS
+// ═══════════════════════════════════════════
+function calcS(){
+  const dates=DR.map(d=>shortDate(d.date));
+  const fullDates=DR.map(d=>d.date);
+  const ahis=DR.map(d=>d.ahi);
+  const ais=DR.map(d=>d.ai);
+  const leaks=DR.map(d=>d.leak);
+  const sleeps=DR.map(d=>d.totalMin);
+  const epaps=DR.map(d=>d.epap);
+  const total=DR.length;
+  const used=DR.filter(d=>d.totalMin>0).length;
+  const unused=total-used;
+  const above4=DR.filter(d=>d.totalMin>=240).length;
+  const below4=DR.filter(d=>d.totalMin>0&&d.totalMin<240).length;
+  const usedM=sleeps.filter(m=>m>0);
+  const avgUsed=mean(usedM);
+  const totalMin=sleeps.reduce((a,b)=>a+b,0);
+  const minUse=usedM.length?Math.min(...usedM):0;
+  const maxUse=usedM.length?Math.max(...usedM):0;
+  // Weighted AHI/Leak (sessions >= 30 min)
+  let wL=0,wT=0,wA=0,wAI=0;
+  DR.forEach(d=>{if(d.totalMin>=30){wL+=d.leak*d.totalMin;wA+=d.ahi*d.totalMin;wAI+=d.ai*d.totalMin;wT+=d.totalMin;}});
+  const avgLeak=wT>0?Math.round(wL/wT*10)/10:0;
+  const avgAHI=wT>0?Math.round(wA/wT*100)/100:0;
+  const avgAI=wT>0?Math.round(wAI/wT*100)/100:0;
+  const crit=DR.filter(d=>d.leak>24||d.ahi>5).length;
+  const first=DR[0].date,last=DR[DR.length-1].date;
+  const serino=DR[0].serino,mode=DR[0].mode,epap=DR[0].epap;
+  const weight=DR[0].weight;
+  return{dates,fullDates,ahis,ais,leaks,sleeps,epaps,total,used,unused,above4,below4,
+    avgUsed,totalMin,minUse,maxUse,avgLeak,avgAHI,avgAI,crit,first,last,serino,mode,epap,weight};
+}
+
+// ═══════════════════════════════════════════
+// CHART FACTORY — High DPI
+// ═══════════════════════════════════════════
+const CG='rgba(148,163,184,.2)',CT='#475569';
+
+function mkChart(id,type,labels,datasets,opts={}){
+  const ctx=document.getElementById(id);
+  if(!ctx)return;
+  if(CH[id])CH[id].destroy();
+  // High DPI
+  const ratio=window.devicePixelRatio||2;
+  const rect=ctx.parentElement.getBoundingClientRect();
+  ctx.width=Math.round(rect.width*ratio);
+  ctx.height=Math.round(ctx.parentElement.offsetHeight*ratio);
+  ctx.style.width='100%';
+  ctx.style.height='100%';
+
+  CH[id]=new Chart(ctx,{
+    type,
+    data:{labels,datasets},
+    options:{
+      responsive:false,
+      maintainAspectRatio:false,
+      devicePixelRatio:ratio,
+      plugins:{legend:{display:false},...(opts.plugins||{})},
+      scales:{
+        x:{ticks:{color:CT,font:{size:8},maxRotation:0,minRotation:0,autoSkip:true,maxTicksLimit:12},...(opts.xExtra||{}),grid:{color:CG}},
+        y:{ticks:{color:CT,font:{size:8}},...(opts.yExtra||{}),grid:{color:CG}}
+      }
+    }
+  });
+}
+
+function barChart(id,labels,data,colorFn,ymin,ymax,refLine){
+  const ds=[{
+    data,borderRadius:2,borderSkipped:false,
+    backgroundColor:data.map((v,i)=>colorFn(v,i)),
+    barPercentage:.7,categoryPercentage:.8
+  }];
+  if(refLine!==undefined){
+    ds.push({type:'line',data:data.map(()=>refLine),
+      borderColor:'rgba(220,38,38,.5)',borderDash:[5,3],
+      borderWidth:1.5,pointRadius:0,fill:false,tension:0});
+  }
+  mkChart(id,'bar',labels,ds,{yExtra:{min:ymin,max:ymax||undefined}});
+}
+
+// ═══════════════════════════════════════════
+// OVERVIEW — SCREEN
+// ═══════════════════════════════════════════
+function showOV(){
+  AI=-1;renderSB();
+  if(!DR.length)return;
+  const s=calcS();
+  const main=document.getElementById('main');
+  main.innerHTML=`<div style="animation:fu .3s ease">
+  <div class="ih">
+    <div class="ih-top">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span style="font-size:20px">🫁</span>
+        <div>
+          <div class="gs-logo"><b>GOLD</b><span>SLEEP</span></div>
+          <div style="font-size:8px;color:var(--mut);letter-spacing:1.5px;">UYKU TEDAVİ SİSTEMİ</div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:12px;font-weight:800;color:var(--blu);">DETAYLI RAPOR</div>
+        <div style="font-size:9px;color:var(--mut);">Rapor: ${todayStr()}</div>
+      </div>
+    </div>
+    <div class="ih-div"></div>
+    <div class="ih-bdg">
+      <span class="bdg" style="background:var(--blu);">📅 ${s.first} — ${s.last}</span>
+      <span class="bdg" style="background:var(--yel);">🔑 ${s.serino}</span>
+      <span class="bdg" style="background:#475569;">💊 ${s.mode} · EPAP:${s.epap}</span>
+    </div>
+  </div>
+
+  <div class="sum-out">
+    <div class="sum-bar">ÖZET KULLANIM RAPORU</div>
+    <div class="sum-g">
+      <div class="sum-r"><span class="sum-l">Toplam Gün</span><span class="sum-v">${s.total} Gün</span></div>
+      <div class="sum-r"><span class="sum-l">Kullanılmayan Günler</span><span class="sum-v">${s.unused} Gün</span></div>
+      <div class="sum-r"><span class="sum-l">Kullanılan Günler</span><span class="sum-v">${s.used} Gün</span></div>
+      <div class="sum-r"><span class="sum-l">Ort. 4 Saat Altı</span><span class="sum-v">${s.below4} Gün</span></div>
+      <div class="sum-r"><span class="sum-l">Ort. 4 Saat Üstü</span><span class="sum-v">${s.above4} Gün</span></div>
+      <div class="sum-r"><span class="sum-l">Kull. Gün Ort. Saat</span><span class="sum-v">${fmtH(s.avgUsed)}</span></div>
+      <div class="sum-r"><span class="sum-l">Toplam Kullanım</span><span class="sum-v">${fmtH(s.totalMin)}</span></div>
+      <div class="sum-r"><span class="sum-l">Min Kullanım</span><span class="sum-v">${s.minUse>0?fmtMin(s.minUse):'—'}</span></div>
+      <div class="sum-r"><span class="sum-l">Tüm Günler Ort.</span><span class="sum-v">${fmtMin(s.totalMin/s.total)}</span></div>
+      <div class="sum-r"><span class="sum-l">Max Kullanım</span><span class="sum-v">${fmtMin(s.maxUse)}</span></div>
+      <div class="sum-r"><span class="sum-l">AHI (ağ. ort.)</span><span class="sum-v" style="color:${s.avgAHI>5?'var(--red)':s.avgAHI>2?'var(--yel)':'var(--grn)'}">${s.avgAHI}</span></div>
+      <div class="sum-r"><span class="sum-l">Kaçak (median)</span><span class="sum-v" style="color:${s.avgLeak>24?'var(--red)':s.avgLeak>15?'var(--yel)':'var(--grn)'}">${s.avgLeak} L/dk</span></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab act" onclick="swT(this,'pg')">Grafikler</div>
+    <div class="tab" onclick="swT(this,'pa')">Uyarılar</div>
+    <div class="tab" onclick="swT(this,'pt')">Günlük Tablo</div>
+  </div>
+
+  <div class="tp act" id="pg">
+    ${chartSection('cvEPAP','#e8f0fb','#1a56a0','Cihaz Giriş Ayarları','CPAP','#1a56a0',s.epap,'Ort. P95','#64748b',(s.epap-.6).toFixed(1),'h95')}
+    ${chartSection('cvAI','#ede9fe','#4f46e5','Apne İndeksi','AI','#4f46e5',s.avgAI,'','','','h85')}
+    ${chartSection('cvAHI','#ede9fe','#4f46e5','Hipo Apne İndeksi','AHI','#4f46e5',s.avgAHI,'','','','h85')}
+    ${chartSection('cvLeak','#fce7f3','#db2777','Kaçak','KAÇAK (L)',s.avgLeak>24?'#dc2626':'#db2777',s.avgLeak,'','','','h85')}
+    ${chartSection('cvUsage','#f1f5f9','#475569','Günlük Kullanımlar','','','','','','','h95')}
+  </div>
+
+  <div class="tp" id="pa"><div id="sc-alerts"></div></div>
+
+  <div class="tp" id="pt">
+    <div class="dt-w"><table class="dt">
+      <thead><tr><th>Tarih</th><th>Süre</th><th>AHI</th><th>AI</th><th>Kaçak</th><th>EPAP</th><th>Durum</th></tr></thead>
+      <tbody>${DR.map((d,i)=>{
+        const s2=st(d);
+        return`<tr class="${s2.l}" onclick="selDay(${i})" style="cursor:pointer">
+          <td style="font-size:9px;font-family:monospace">${d.date}</td>
+          <td style="font-weight:800;color:${d.totalMin>=240?'#16a34a':d.totalMin>0?'#dc2626':'#aaa'}">${d.totalMin>0?fmtMin(d.totalMin):'—'}</td>
+          <td style="color:${d.ahi>5?'#dc2626':d.ahi>2?'#d97706':'inherit'}">${d.ahi}</td>
+          <td>${d.ai}</td>
+          <td style="color:${d.leak>24?'#dc2626':d.leak>15?'#d97706':'inherit'}">${d.leak}</td>
+          <td>${d.epap}</td>
+          <td><span style="font-size:8px;padding:1px 5px;border-radius:3px;font-weight:800;
+            background:${s2.l==='danger'?'#fee2e2':s2.l==='warn'?'#fef3c7':s2.l==='unused'?'#e2e8f0':'#dcfce7'};
+            color:${s2.l==='danger'?'#991b1b':s2.l==='warn'?'#92400e':s2.l==='unused'?'#475569':'#166534'}">
+            ${s2.l==='danger'?'Kritik':s2.l==='warn'?'Dikkat':s2.l==='unused'?'Yok':'Normal'}</span></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>
+  </div>
+
+  <button onclick="doPrint()" style="width:100%;margin-top:8px;margin-bottom:10px;padding:9px;background:var(--blu);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;letter-spacing:.3px;">
+    🖨️ PDF Raporu Oluştur / Yazdır
+  </button>
+  </div>`;
+
+  buildAlerts(s.avgLeak,s.avgAHI,s.below4,s.crit,'sc-alerts');
+
+  setTimeout(()=>{
+    barChart('cvEPAP',s.dates,s.epaps,()=>'rgba(26,86,160,.85)',8,16,undefined);
+    barChart('cvAI',s.dates,s.ais,v=>v>5?'rgba(220,38,38,.9)':'rgba(79,70,229,.85)',0,null,5);
+    barChart('cvAHI',s.dates,s.ahis,v=>v>5?'rgba(220,38,38,.9)':'rgba(79,70,229,.75)',0,null,5);
+    barChart('cvLeak',s.dates,s.leaks,v=>v>24?'rgba(220,38,38,.9)':v>15?'rgba(245,158,11,.9)':'rgba(219,39,119,.85)',0,null,24);
+    barChart('cvUsage',s.dates,s.sleeps.map(m=>+(m/60).toFixed(2)),
+      m=>m===0?'rgba(148,163,184,.4)':m>=4?'rgba(22,163,74,.85)':'rgba(220,38,38,.85)',0,null,4);
+  },100);
+}
+
+function chartSection(id,bgHead,lblBg,title,a1l,a1bg,a1v,a2l,a2bg,a2v,hCls){
+  return`<div class="card">
+    <div class="card-head" style="background:${bgHead}">
+      <span class="clbl" style="background:${lblBg}">${title}</span>
+      <div style="display:flex;align-items:center;gap:5px;">
+        ${a1l?`<span class="cavg-lbl">${a1l}</span><span class="cavg" style="background:${a1bg}">${a1v}</span>`:''}
+        ${a2l?`<span class="cavg-lbl">${a2l}</span><span class="cavg" style="background:${a2bg}">${a2v}</span>`:''}
+      </div>
+    </div>
+    <div class="cbody"><div class="ch ${hCls}"><canvas id="${id}"></canvas></div></div>
+  </div>`;
+}
+
+function buildAlerts(avgLeak,avgAHI,below4,crit,elId){
+  const el=document.getElementById(elId);if(!el)return;
+  const arr=[];
+  if(avgLeak>24)arr.push({l:'danger',i:'🚨',t:`Ort. Kaçak Kritik: ${avgLeak} L/dk`,d:'Maske uyumunu kontrol edin.'});
+  else if(avgLeak>15)arr.push({l:'warn',i:'⚠️',t:`Ort. Kaçak Yüksek: ${avgLeak} L/dk`,d:'Maske pozisyonuna dikkat.'});
+  if(avgAHI>5)arr.push({l:'danger',i:'🚨',t:`Ort. AHI Yüksek: ${avgAHI}`,d:'Klinisyene danışın.'});
+  if(crit>0)arr.push({l:'danger',i:'🚨',t:`${crit} kritik gece tespit edildi`,d:'Günlük tabloyu inceleyin.'});
+  if(below4>3)arr.push({l:'warn',i:'⚠️',t:`${below4} gecede kullanım 4 saatin altında`,d:'Min. 4 saat önerilir.'});
+  if(!arr.length)arr.push({l:'ok',i:'✅',t:'Dönem Geneli Normal',d:'Kritik uyarı tespit edilmedi.'});
+  el.innerHTML=arr.map(a=>`<div class="alrt ${a.l}">
+    <span style="font-size:16px">${a.i}</span>
+    <div><div class="at">${a.t}</div><div class="ad">${a.d}</div></div>
+  </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// PRINT — Yeni pencerede tam PDF
+// ═══════════════════════════════════════════
+function doPrint(){
+  const s=calcS();
+
+  // Canvas → PNG (High DPI)
+  function png(id){
+    const cv=document.getElementById(id);
+    if(!cv)return'';
+    try{return cv.toDataURL('image/png',1.0);}catch(e){return'';}
+  }
+  function imgH(id,h){
+    const src=png(id);
+    if(!src)return`<div style="height:${h}px;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#94a3b8;border:1px dashed #e2e8f0;">Veri yok</div>`;
+    return`<img src="${src}" style="width:100%;height:${h}px;object-fit:fill;display:block;">`;
+  }
+
+  // Kısa tarih: DD.MM
+  const sD=s.dates; // already short
+
+  // ── Render print-only charts in offscreen canvases ──
+  // Create temporary charts with higher quality for print
+  function buildPrintChartImg(type,labels,datasets,h,w,opts){
+    const tmp=document.createElement('canvas');
+    const ratio=3; // 3x DPI for print
+    tmp.width=w*ratio;tmp.height=h*ratio;
+    tmp.style.width=w+'px';tmp.style.height=h+'px';
+    document.body.appendChild(tmp);
+    const c=new Chart(tmp,{
+      type,data:{labels,datasets},
+      options:{
+        responsive:false,maintainAspectRatio:false,devicePixelRatio:ratio,
+        plugins:{legend:{display:false}},
+        animation:{duration:0},
+        scales:{
+          x:{ticks:{color:'#334155',font:{size:9},maxRotation:0,minRotation:0,autoSkip:true,maxTicksLimit:12},grid:{color:'rgba(148,163,184,.25)'},...(opts.x||{})},
+          y:{ticks:{color:'#334155',font:{size:9}},...(opts.y||{}),grid:{color:'rgba(148,163,184,.25)'}}
+        }
+      }
+    });
+    const src=tmp.toDataURL('image/png',1.0);
+    c.destroy();tmp.remove();
+    return src;
+  }
+
+  function makeBar(labels,data,colorFn,h,w,ymin,ymax,refLine){
+    const ds=[{data,borderRadius:2,borderSkipped:false,
+      backgroundColor:data.map((v,i)=>colorFn(v,i)),
+      barPercentage:.7,categoryPercentage:.8}];
+    if(refLine!==undefined)ds.push({type:'line',data:data.map(()=>refLine),
+      borderColor:'rgba(220,38,38,.6)',borderDash:[5,3],borderWidth:1.5,
+      pointRadius:0,fill:false,tension:0});
+    return buildPrintChartImg('bar',labels,ds,h,w,{y:{min:ymin,max:ymax||undefined}});
+  }
+
+  const PW=700; // print chart width px
+  const charts={
+    epap: makeBar(sD,s.epaps,()=>'rgba(26,86,160,.9)',90,PW,8,16,undefined),
+    ai:   makeBar(sD,s.ais,  v=>v>5?'rgba(220,38,38,.9)':'rgba(79,70,229,.9)',90,PW,0,null,5),
+    ahi:  makeBar(sD,s.ahis, v=>v>5?'rgba(220,38,38,.9)':'rgba(79,70,229,.8)',90,PW,0,null,5),
+    leak: makeBar(sD,s.leaks,v=>v>24?'rgba(220,38,38,.9)':v>15?'rgba(245,158,11,.9)':'rgba(219,39,119,.85)',90,PW,0,null,24),
+    usage:makeBar(sD,s.sleeps.map(m=>+(m/60).toFixed(2)),m=>m===0?'rgba(203,213,225,.5)':m>=4?'rgba(22,163,74,.9)':'rgba(220,38,38,.9)',100,PW,0,null,4),
+    // Placeholder zeros for detail-less charts
+    apne: makeBar(sD,s.ais,  v=>v>0?'rgba(13,148,136,.9)':'rgba(13,148,136,.3)',85,PW,0,null,5),
+    sant: makeBar(sD,s.ais,  v=>v>0?'rgba(2,132,199,.9)' :'rgba(2,132,199,.3)',  85,PW,0,null,5),
+    hipo: makeBar(sD,s.dates.map(()=>0),()=>'rgba(234,88,12,.4)',70,PW,0,2,undefined),
+    obst: makeBar(sD,s.dates.map(()=>0),()=>'rgba(124,58,237,.4)',70,PW,0,2,undefined),
+    mikst:makeBar(sD,s.dates.map(()=>0),()=>'rgba(37,99,235,.4)',70,PW,0,2,undefined),
+    horl: makeBar(sD,s.dates.map(()=>0),()=>'rgba(202,138,4,.4)',70,PW,0,5,undefined),
+    rera: makeBar(sD,s.dates.map(()=>0),()=>'rgba(190,18,60,.4)',70,PW,0,2,undefined),
+    csr:  makeBar(sD,s.dates.map(()=>0),()=>'rgba(21,128,61,.4)',70,PW,0,2,undefined),
+  };
+
+  // ── Block helper ──
+  function csB(bgH,lblBg,title,a1l,a1bg,a1v,a2l,a2bg,a2v,imgSrc,h){
+    return`<div style="border:1px solid #d1d5db;margin-bottom:3px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 7px;background:${bgH};">
+        <span style="font-size:8px;font-weight:800;color:#fff;background:${lblBg};padding:1px 6px;border-radius:2px;">${title}</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${a1l?`<span style="font-size:8px;color:#555;">${a1l}</span><span style="font-size:9px;font-weight:800;color:#fff;background:${a1bg};padding:1px 6px;border-radius:2px;">${a1v}</span>`:''}
+          ${a2l?`<span style="font-size:8px;color:#555;">${a2l}</span><span style="font-size:9px;font-weight:800;color:#fff;background:${a2bg};padding:1px 6px;border-radius:2px;">${a2v}</span>`:''}
+        </div>
+      </div>
+      <div style="padding:2px 5px 4px;"><img src="${imgSrc}" style="width:100%;height:${h}px;object-fit:fill;display:block;"></div>
+    </div>`;
+  }
+
+  // ── Monthly usage bar table ──
+  const byMonth={};
+  DR.forEach(d=>{const m=d.date.slice(3);if(!byMonth[m])byMonth[m]=[];byMonth[m].push(d);});
+  const mKeys=Object.keys(byMonth);
+
+  function monthUsageBlock(mon){
+    const days=byMonth[mon];
+    const maxM=Math.max(...days.map(d=>d.totalMin),1);
+    return`<div>
+      <div style="font-size:7px;font-weight:800;color:#fff;background:#475569;padding:2px 6px;margin-bottom:2px;">${mon} — Günlük Kullanımlar</div>
+      <div style="font-size:7px;color:#555;margin-bottom:2px;display:flex;gap:6px;">
+        <span><span style="display:inline-block;width:8px;height:7px;background:#16a34a;vertical-align:middle;"></span> 4s Üzeri</span>
+        <span><span style="display:inline-block;width:8px;height:7px;background:#dc2626;vertical-align:middle;"></span> 4s Altı</span>
+      </div>
+      ${days.map(d=>{
+        const pct=d.totalMin>0?Math.round(d.totalMin/maxM*140):0;
+        const col=d.totalMin===0?'#e2e8f0':d.totalMin>=240?'#16a34a':'#dc2626';
+        return`<div style="display:flex;align-items:center;margin-bottom:1px;">
+          <div style="width:52px;font-size:6.5px;color:#333;flex-shrink:0;">${d.date}</div>
+          <div style="height:9px;width:${pct}px;min-width:${d.totalMin>0?1:0}px;background:${col};border-radius:1px;flex-shrink:0;"></div>
+          <div style="font-size:6.5px;font-weight:800;color:#333;margin-left:3px;">${d.totalMin>0?fmtMin(d.totalMin):'00:00'}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  function monthEventsBlock(mon){
+    const days=byMonth[mon];
+    return`<div>
+      <div style="font-size:7px;font-weight:800;color:#fff;background:#475569;padding:2px 6px;margin-bottom:2px;">${mon} — Günlük Yaşanan Olaylar</div>
+      <table style="width:100%;border-collapse:collapse;font-size:6.5px;">
+        <thead><tr>
+          <th style="background:#888;color:#fff;padding:2px 3px;text-align:left;border:1px solid #ccc;">Tarih</th>
+          <th style="background:#0d9488;color:#fff;padding:2px 2px;border:1px solid #ccc;text-align:center;">Apne</th>
+          <th style="background:#ea580c;color:#fff;padding:2px 2px;border:1px solid #ccc;text-align:center;">Hipo</th>
+          <th style="background:#7c3aed;color:#fff;padding:2px 2px;border:1px solid #ccc;text-align:center;">Engel.</th>
+          <th style="background:#0284c7;color:#fff;padding:2px 2px;border:1px solid #ccc;text-align:center;">Sant.</th>
+          <th style="background:#2563eb;color:#fff;padding:2px 2px;border:1px solid #ccc;text-align:center;">Mikst</th>
+          <th style="background:#ca8a04;color:#fff;padding:2px 2px;border:1px solid #ccc;text-align:center;">Horl.</th>
+          <th style="background:#888;color:#fff;padding:2px 3px;border:1px solid #ccc;text-align:right;">Süre</th>
+        </tr></thead>
+        <tbody>
+          ${days.map(d=>{
+            const evtCounts={apne:0,hipo:0,obst:0,sant:0,mikst:0,horl:0};
+            (d.evts||[]).forEach(ev=>{
+              if(ev.event===4)evtCounts.apne++;
+              else if(ev.event===5)evtCounts.hipo++;
+              else if(ev.event===6)evtCounts.obst++;
+              else if(ev.event===7)evtCounts.sant++;
+              else if(ev.event===8)evtCounts.mikst++;
+              else if(ev.event===9)evtCounts.horl++;
+            });
+            const bg=d.totalMin>=240?'#f0fdf4':d.totalMin>0?'#fffbeb':'#f8fafc';
+            const c=n=>n>0?`<b style="color:#333">${n}</b>`:'';
+            return`<tr style="background:${bg}">
+              <td style="padding:2px 3px;border:1px solid #e5e7eb;">${d.date}</td>
+              <td style="padding:2px 2px;border:1px solid #e5e7eb;text-align:center;">${c(evtCounts.apne)}</td>
+              <td style="padding:2px 2px;border:1px solid #e5e7eb;text-align:center;">${c(evtCounts.hipo)}</td>
+              <td style="padding:2px 2px;border:1px solid #e5e7eb;text-align:center;">${c(evtCounts.obst)}</td>
+              <td style="padding:2px 2px;border:1px solid #e5e7eb;text-align:center;">${c(evtCounts.sant)}</td>
+              <td style="padding:2px 2px;border:1px solid #e5e7eb;text-align:center;">${c(evtCounts.mikst)}</td>
+              <td style="padding:2px 2px;border:1px solid #e5e7eb;text-align:center;">${c(evtCounts.horl)}</td>
+              <td style="padding:2px 3px;border:1px solid #e5e7eb;text-align:right;font-weight:800;">${d.totalMin>0?fmtMin(d.totalMin):'00:00'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  // ── MONTH PAGES ──
+  function monthPages(){
+    let html='';
+    for(let i=0;i<mKeys.length;i+=2){
+      const m1=mKeys[i],m2=mKeys[i+1];
+      html+=`<div style="page-break-before:always;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px;">
+          <div>${monthUsageBlock(m1)}</div>
+          <div>${m2?monthUsageBlock(m2):''}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>${monthEventsBlock(m1)}</div>
+          <div>${m2?monthEventsBlock(m2):''}</div>
+        </div>
+        <div style="text-align:right;font-size:8px;color:#999;margin-top:4px;">${4+Math.ceil((i+2)/2)}</div>
+      </div>`;
+    }
+    return html;
+  }
+
+  // ── BUILD HTML ──
+  const html=`<!DOCTYPE html><html><head>
+  <meta charset="UTF-8">
+  <title>Goldslep Detaylı Rapor — ${s.first} / ${s.last}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+    body{font-family:'Nunito',sans-serif;font-size:9px;color:#1e293b;background:#fff;}
+    @page{margin:7mm;size:A4;}
+    .pg{page-break-after:always;}
+    .pg:last-child{page-break-after:avoid;}
+    @media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}}
+    img{display:block;max-width:100%;}
+    b.blu{color:#1a56a0;}
+    .pn{text-align:right;font-size:7px;color:#94a3b8;margin-top:3px;}
+  </style>
+  </head><body>
+
+  <!-- ══════ SAYFA 1 ══════ -->
+  <div class="pg">
+    <!-- Başlık -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+      <div>
+        <div style="font-size:16px;font-weight:900;color:#111;">DETAYLI RAPOR</div>
+        <table style="margin-top:3px;border-collapse:collapse;font-size:8px;">
+          <tr><td style="color:#555;padding-right:6px;padding-bottom:1px;">Seri No</td><td style="font-weight:800;color:#1a56a0;">${s.serino}</td></tr>
+          <tr><td style="color:#555;padding-right:6px;padding-bottom:1px;">Terapi Tarihi</td><td style="font-weight:700;">${s.first} - ${s.last}</td></tr>
+          <tr><td style="color:#555;padding-right:6px;">Toplam Gün</td><td style="font-weight:700;">${s.total} Gün</td></tr>
+        </table>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:19px;font-weight:900;letter-spacing:1px;"><b style="color:#1a56a0;">GOLD</b><span style="color:#f59e0b;">SLEEP</span></div>
+        <div style="font-size:7.5px;color:#555;margin-top:2px;line-height:1.6;">
+          Versiyon: 1.5.0<br>
+          Rapor Tarihi: ${todayStr()}<br>
+          Terapi Modu: ${s.mode}
+        </div>
+      </div>
+    </div>
+    <div style="height:1.5px;background:linear-gradient(90deg,#1a56a0,#f59e0b,#1a56a0);margin-bottom:4px;border-radius:1px;"></div>
+
+    <!-- Kullanıcı / Doktor -->
+    <table style="width:100%;border-collapse:collapse;font-size:8px;margin-bottom:4px;">
+      <tr>
+        <td style="background:#1a56a0;color:#fff;font-weight:800;padding:2px 7px;width:50%;font-size:8px;">KULLANICI BİLGİLERİ</td>
+        <td style="background:#1a56a0;color:#fff;font-weight:800;padding:2px 7px;width:50%;font-size:8px;">DOKTOR BİLGİLERİ</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #d1d5db;padding:4px 7px;vertical-align:top;line-height:1.8;">
+          <b>Yaş</b><br><b>KG</b> &nbsp;${s.weight}<br><b>Tel</b><br><b>Maske</b>
+        </td>
+        <td style="border:1px solid #d1d5db;padding:4px 7px;vertical-align:top;line-height:1.8;">
+          <b>Uzmanlık</b><br><b>Tel</b><br><b>Posta</b>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Özet Kullanım Raporu -->
+    <table style="width:100%;border-collapse:collapse;font-size:8px;margin-bottom:4px;">
+      <tr><td colspan="4" style="background:#1a56a0;color:#fff;font-weight:800;padding:3px 7px;font-size:9px;">ÖZET KULLANIM RAPORU</td></tr>
+      <tr>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700;width:23%">Toplam Gün</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800;width:27%">${s.total} Gün</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700;width:23%">Kullanılmasın Günler</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800;width:27%">${s.unused} Gün</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700">Kullanan Günler</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800">${s.used} Gün</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700">Ortalama 4 Saat Altı</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800">${s.below4} Gün</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700">Ortalama 4 Saat Üstü</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800">${s.above4} Gün</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700">Kullanılan Gün Ort. Saat</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800">${fmtH(s.avgUsed)}</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700">Toplam Kullanım</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800">${fmtH(s.totalMin)}</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700">1 Günde Min Kullanım</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800">${s.minUse>0?fmtMin(s.minUse):'—'}</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700">Tüm Günler Ort. Saat</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800">${fmtMin(s.totalMin/s.total)}</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700">1 Günde Max Kullanım</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800">${fmtMin(s.maxUse)}</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700">SpO2</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800">—</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700">AHI</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800;color:${s.avgAHI>5?'#dc2626':s.avgAHI>2?'#d97706':'#16a34a'}">${s.avgAHI}</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700">Kaçak (Median)</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800;color:${s.avgLeak>24?'#dc2626':s.avgLeak>15?'#d97706':'#16a34a'}">${s.avgLeak} L/dk</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;color:#555;font-weight:700">Kritik Gece</td>
+        <td style="border:1px solid #d1d5db;padding:3px 7px;font-weight:800;color:${s.crit>0?'#dc2626':'#16a34a'}">${s.crit} Gün</td>
+      </tr>
+    </table>
+
+    <!-- 3 Grafik: Cihaz Ayarları, AI, AHI -->
+    ${csB('#e8f0fb','#1a56a0','Cihaz Giriş Ayarları','CPAP','#1a56a0',s.epap,'Ort. Basınç','#475569',s.epap,charts.epap,90)}
+    ${csB('#ede9fe','#4f46e5','Apne İndeksi','AI','#4f46e5',s.avgAI,'','','',charts.ai,88)}
+    ${csB('#ede9fe','#4f46e5','Hipo Apne İndeksi','AHI','#4f46e5',s.avgAHI,'','','',charts.ahi,88)}
+    <div class="pn">1</div>
+  </div>
+
+  <!-- ══════ SAYFA 2 ══════ -->
+  <div class="pg">
+    ${csB('#fce7f3','#db2777','Kaçak','KAÇAK (L)',s.avgLeak>24?'#dc2626':'#db2777',s.avgLeak,'','','',charts.leak,90)}
+    ${csB('#f1f5f9','#475569','Günlük Kullanımlar','','','','','','',charts.usage,100)}
+    ${csB('#ccfbf1','#0d9488','Apne','Apne Ort.','#0d9488',s.avgAI,'','','',charts.apne,85)}
+    ${csB('#fff7ed','#ea580c','Hipopne','HA Ort.','#ea580c','0.00','','','',charts.hipo,70)}
+    ${csB('#f5f3ff','#7c3aed','Obstrüktif Apne','OA Ort.','#7c3aed','0.00','','','',charts.obst,70)}
+    <div class="pn">2</div>
+  </div>
+
+  <!-- ══════ SAYFA 3 ══════ -->
+  <div class="pg">
+    ${csB('#e0f2fe','#0284c7','Santral Apne','CA Ort.','#0284c7',s.avgAI,'','','',charts.sant,88)}
+    ${csB('#eff6ff','#2563eb','Mikst Apne','MA Ort.','#2563eb','0.00','','','',charts.mikst,75)}
+    ${csB('#fefce8','#ca8a04','Horlama','Horlama Ort.','#ca8a04','0.00','','','',charts.horl,75)}
+    ${csB('#fff1f2','#be123c','RERA','RERA Ort.','#be123c','0.00','','','',charts.rera,75)}
+    ${csB('#f0fdf4','#15803d','Cheyne-Stokes Solunumu','CSR Ort.','#15803d','0.00','','','',charts.csr,75)}
+    <div class="pn">3</div>
+  </div>
+
+  <!-- ══════ SAYFA 4+ — Aylık tablolar ══════ -->
+  ${monthPages()}
+
+  </body></html>`;
+
+  const w=window.open('','_blank','width=950,height=750');
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.onload=()=>setTimeout(()=>{w.focus();w.print();},600);
+}
+
+// ═══════════════════════════════════════════
+// DAY DETAIL
+// ═══════════════════════════════════════════
+function selDay(i){
+  AI=i;renderSB();
+  const d=DR[i];
+  const main=document.getElementById('main');
+  main.innerHTML=`<div style="animation:fu .2s ease">
+  <div class="ih">
+    <div class="ih-top">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span style="font-size:18px">🫁</span>
+        <div><div class="gs-logo"><b>GOLD</b><span>SLEEP</span></div>
+          <div style="font-size:8px;color:var(--mut);letter-spacing:1px;">GÜNLÜK RAPOR</div></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:12px;font-weight:800;color:var(--blu)">${d.date}</div>
+        <div style="font-size:9px;color:var(--mut)">${d.sleepTime} → ${d.wakeTime}</div>
+      </div>
+    </div>
+    <div class="ih-div"></div>
+    <div class="ih-bdg">
+      <span class="bdg" style="background:var(--blu)">📅 ${d.date}</span>
+      <span class="bdg" style="background:var(--yel)">🔑 ${d.serino}</span>
+      <span class="bdg" style="background:var(--grn)">⏱ ${fmtMin(d.totalMin)}</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab act" onclick="swT(this,'dd-o')">Özet</div>
+    <div class="tab" onclick="swT(this,'dd-g')">Grafik</div>
+    <div class="tab" onclick="swT(this,'dd-r')">Rapor</div>
+    <div class="tab" onclick="swT(this,'dd-e')">Eşik</div>
+  </div>
+
+  <div class="tp act" id="dd-o">
+    <div id="dd-alrt" style="margin-bottom:7px;"></div>
+    <div class="sum-out">
+      <div class="sum-bar">SEANS BİLGİLERİ</div>
+      <div class="sum-g">
+        <div class="sum-r"><span class="sum-l">Mod</span><span class="sum-v">${d.mode}</span></div>
+        <div class="sum-r"><span class="sum-l">Seri No</span><span class="sum-v" style="font-size:8px">${d.serino}</span></div>
+        <div class="sum-r"><span class="sum-l">EPAP</span><span class="sum-v">${d.epap} cmH₂O</span></div>
+        <div class="sum-r"><span class="sum-l">IPAP</span><span class="sum-v">${d.ipap} cmH₂O</span></div>
+        <div class="sum-r"><span class="sum-l">AHI</span><span class="sum-v" style="color:${d.ahi>5?'var(--red)':d.ahi>2?'var(--yel)':'var(--grn)'}">${d.ahi}</span></div>
+        <div class="sum-r"><span class="sum-l">AI</span><span class="sum-v" style="color:${d.ai>5?'var(--red)':d.ai>2?'var(--yel)':'var(--grn)'}">${d.ai}</span></div>
+        <div class="sum-r"><span class="sum-l">Kaçak</span><span class="sum-v" style="color:${d.leak>24?'var(--red)':d.leak>15?'var(--yel)':'var(--grn)'}">${d.leak} L/dk</span></div>
+        <div class="sum-r"><span class="sum-l">Uyku Süresi</span><span class="sum-v" style="color:${d.totalMin>=240?'var(--grn)':'var(--red)'}">${fmtMin(d.totalMin)}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tp" id="dd-g">
+    ${chartSection('dd-ep','#e8f0fb','#1a56a0','Basınç','EPAP','#1a56a0',d.epap,'','','','h95')}
+    ${chartSection('dd-ah','#ede9fe','#4f46e5','AHI / AI','','','','','','','h85')}
+    ${chartSection('dd-lk','#fce7f3','#db2777','Kaçak','','','','','','','h85')}
+  </div>
+
+  <div class="tp" id="dd-r">
+    <div class="dt-w"><table class="dt">
+      <thead><tr><th>Parametre</th><th>Değer</th><th>Referans</th><th>Durum</th></tr></thead>
+      <tbody>
+        ${[['Tarih',d.date,'—','ok'],['Mod',d.mode,'—','ok'],
+          ['EPAP',d.epap+' cmH₂O','4–20','ok'],['IPAP',d.ipap+' cmH₂O','4–30','ok'],
+          ['AHI',d.ahi+' /saat','< 5',d.ahi>5?'danger':d.ahi>2?'warn':'ok'],
+          ['AI',d.ai+' /saat','< 5',d.ai>5?'danger':d.ai>2?'warn':'ok'],
+          ['Kaçak',d.leak+' L/dk','< 24',d.leak>24?'danger':d.leak>15?'warn':'ok'],
+          ['Uyku Süresi',fmtMin(d.totalMin),'≥ 4 saat',d.totalMin<240&&d.totalMin>0?'warn':'ok'],
+          ['Oturum',d.sessions,'—','ok']
+        ].map(([p,v,r,cls])=>`<tr class="${cls}">
+          <td style="text-align:left">${p}</td>
+          <td style="font-family:monospace">${v}</td>
+          <td style="color:var(--mut)">${r}</td>
+          <td><span style="font-size:8px;padding:1px 5px;border-radius:3px;font-weight:700;
+            background:${cls==='danger'?'#fee2e2':cls==='warn'?'#fef3c7':'#dcfce7'};
+            color:${cls==='danger'?'#991b1b':cls==='warn'?'#92400e':'#166534'}">
+            ${cls==='danger'?'Kritik':cls==='warn'?'Dikkat':'Normal'}</span></td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>
+    <button onclick="window.print()" style="width:100%;margin-top:7px;padding:7px;background:var(--blu);color:#fff;border:none;border-radius:6px;font-size:10px;font-weight:800;cursor:pointer;">🖨️ Yazdır</button>
+  </div>
+
+  <div class="tp" id="dd-e">
+    <div style="background:#f8fafc;border:1px solid var(--bor);border-radius:7px;padding:10px;margin-bottom:8px;">
+      <div style="font-size:10px;font-weight:800;margin-bottom:8px;color:var(--txt);">⚙️ Eşik Değerleri</div>
+      ${[['Max. Kaçak','te-lk','24','L/dk'],['Max. AHI','te-ah','5','/saat'],
+        ['Max. AI','te-ai','5','/saat'],['Min. Uyku (dk)','te-sl','240','dk']
+      ].map(([l,id,v,u])=>`<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;flex-wrap:wrap;">
+        <label style="font-size:10px;color:var(--mut);width:125px">${l}</label>
+        <input id="${id}" type="number" value="${v}" style="background:#fff;border:1px solid var(--bor);color:var(--txt);padding:4px 7px;border-radius:5px;font-size:10px;width:62px;outline:none;">
+        <span style="font-size:9px;color:var(--mut)">${u}</span>
+      </div>`).join('')}
+      <button onclick="runTh(${i})" style="background:var(--blu);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:10px;font-weight:800;border:none;">🔍 Kontrol Et</button>
+    </div>
+    <div id="th-res"></div>
+  </div>
+  </div>`;
+
+  buildDayAlerts(d,'dd-alrt');
+  let drawnG=false;
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click',()=>{
+      if(t.textContent==='Grafik'&&!drawnG){drawnG=true;setTimeout(()=>{
+        barChart('dd-ep',['EPAP','IPAP'],[d.epap,d.ipap],()=>'rgba(26,86,160,.9)',0,20);
+        barChart('dd-ah',['AHI','AI'],[d.ahi,d.ai],v=>v>5?'rgba(220,38,38,.9)':'rgba(79,70,229,.9)',0,null,5);
+        barChart('dd-lk',['Kaçak'],[d.leak],v=>v>24?'rgba(220,38,38,.9)':v>15?'rgba(245,158,11,.9)':'rgba(219,39,119,.85)',0,null,24);
+      },60);}
+    });
+  });
+}
+
+function buildDayAlerts(d,id){
+  const arr=[];
+  if(d.leak>24)arr.push({l:'danger',i:'🚨',t:`Yüksek Kaçak: ${d.leak} L/dk`,d:'Maske uyumunu kontrol edin.'});
+  else if(d.leak>15)arr.push({l:'warn',i:'⚠️',t:`Orta Kaçak: ${d.leak} L/dk`,d:'Maske pozisyonuna dikkat.'});
+  if(d.ahi>5)arr.push({l:'danger',i:'🚨',t:`Yüksek AHI: ${d.ahi}`,d:'Klinisyene danışın.'});
+  if(d.ai>5)arr.push({l:'danger',i:'🚨',t:`Yüksek AI: ${d.ai}`,d:'Apne olayları yüksek.'});
+  if(d.totalMin<240&&d.totalMin>0)arr.push({l:'warn',i:'⚠️',t:`Kısa Uyku: ${fmtMin(d.totalMin)}`,d:'Min. 4 saat önerilir.'});
+  if(d.sessions>1)arr.push({l:'warn',i:'ℹ️',t:`${d.sessions} oturum birleştirildi`,d:'Değerler ağırlıklı ortalamadır.'});
+  if(!arr.length)arr.push({l:'ok',i:'✅',t:'Tüm Değerler Normal',d:'Kritik uyarı yok.'});
+  document.getElementById(id).innerHTML=arr.map(a=>`<div class="alrt ${a.l}">
+    <span style="font-size:15px">${a.i}</span>
+    <div><div class="at">${a.t}</div><div class="ad">${a.d}</div></div>
+  </div>`).join('');
+}
+
+function runTh(i){
+  const d=DR[i];
+  const tl=+document.getElementById('te-lk').value||24;
+  const ta=+document.getElementById('te-ah').value||5;
+  const ti=+document.getElementById('te-ai').value||5;
+  const ts=+document.getElementById('te-sl').value||240;
+  const arr=[];
+  if(d.leak>tl)arr.push({l:'danger',i:'🚨',t:`Kaçak: ${d.leak} > ${tl} L/dk`});
+  if(d.ahi>ta) arr.push({l:'danger',i:'🚨',t:`AHI: ${d.ahi} > ${ta}`});
+  if(d.ai>ti)  arr.push({l:'danger',i:'🚨',t:`AI: ${d.ai} > ${ti}`});
+  if(d.totalMin<ts&&d.totalMin>0)arr.push({l:'warn',i:'⚠️',t:`Uyku: ${fmtMin(d.totalMin)}`});
+  if(!arr.length)arr.push({l:'ok',i:'✅',t:'Tüm Eşikler Geçildi'});
+  document.getElementById('th-res').innerHTML=arr.map(a=>`<div class="alrt ${a.l}">
+    <span style="font-size:15px">${a.i}</span><div><div class="at">${a.t}</div></div></div>`).join('');
+}
+
+function swT(el,id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('act'));
+  document.querySelectorAll('.tp').forEach(t=>t.classList.remove('act'));
+  el.classList.add('act');
+  document.getElementById(id).classList.add('act');
+}
+
+// ═══════════════════════════════════════════
+// PWA
+// ═══════════════════════════════════════════
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+let dp=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;document.getElementById('ib').style.display='flex';});
+function installApp(){if(!dp)return;dp.prompt();dp.userChoice.then(()=>{dp=null;document.getElementById('ib').style.display='none';});}
+</script>
+</body>
+</html>
